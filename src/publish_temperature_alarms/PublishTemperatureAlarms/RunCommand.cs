@@ -2,6 +2,7 @@
 using MQTTnet.Client;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace PublishTemperatureAlarms
 
         protected TaskCompletionSource<bool> ShutdownFromRemote { get; }
 
-        protected Dictionary<string, double> Alarms { get; }
+        protected List<Alarm> Alarms { get; }
 
         public RunCommand(IMqttClient mqttClient, string applicationId, double cpuTemperatureThreshold)
         {
@@ -32,7 +33,7 @@ namespace PublishTemperatureAlarms
             ApplicationId = applicationId;
             CpuTemperatureThreshold = cpuTemperatureThreshold;
             ShutdownFromRemote = new TaskCompletionSource<bool>();
-            Alarms = new Dictionary<string, double>();
+            Alarms = new List<Alarm>();
         }
 
         public async Task RunAsync()
@@ -59,7 +60,7 @@ namespace PublishTemperatureAlarms
             }
 
             // subscribe to topics: sensor data
-            foreach (var subscribeResult in await MqttClient.SubscribeAsync($"/+/property/temperature/cpu/#"))
+            foreach (var subscribeResult in await MqttClient.SubscribeAsync($"+/property/temperature/cpu/#"))
             {
                 Console.WriteLine($"Subscribed to: {subscribeResult.TopicFilter.Topic}");
             }
@@ -70,7 +71,22 @@ namespace PublishTemperatureAlarms
 
         private async Task PublishBirth()
         {
+            await PublishAlarms();
             await PublishCpuThreshold();
+        }
+
+        private async Task PublishAlarms(params Alarm[] oldAlarms)
+        {
+            var messages = Alarms
+                .Select(alarm => new MqttApplicationMessageBuilder()
+                    .WithTopic($"{ApplicationPropertyPrefix}/alarms/{alarm.ApplicationId}/{alarm.Component}")
+                    .WithPayload($"{alarm.Temperature}°C")
+                    .Build())
+                .Union(oldAlarms.Select(alarm => new MqttApplicationMessageBuilder()
+                             .WithTopic($"{ApplicationPropertyPrefix}/alarms/{alarm.ApplicationId}/{alarm.Component}")
+                             .WithPayload("resolved")
+                             .Build()));
+            await MqttClient.PublishAsync(messages);
         }
 
         private async Task PublishCpuThreshold()
@@ -124,12 +140,14 @@ namespace PublishTemperatureAlarms
             }
             else if (topic.Contains("/property/temperature/cpu"))
             {
-                string remoteApplicationId = Regex.Match(topic, "^/(.+)/").Groups[1].Value;
+                var match = Regex.Match(topic, "^([^/]+)/property/temperature/(.+)");
+                string remoteApplicationId = match.Groups[1].Value;
+                string component = match.Groups[2].Value;
                 string payloadAsString = applicationMessage.ConvertPayloadToString();
                 string temperatureAsString = Regex.Replace(payloadAsString, "[^0-9\\.]", "");
                 double temperature = temperatureAsString.ToDouble();
                 string temperatureUnit = payloadAsString.Replace(temperatureAsString, "");
-                await TemperatureReceived(remoteApplicationId, temperature, temperatureUnit);
+                await TemperatureReceived(remoteApplicationId, component, temperature, temperatureUnit);
             }
             else
             {
@@ -137,18 +155,18 @@ namespace PublishTemperatureAlarms
             }
         }
 
-        private async Task TemperatureReceived(string remoteApplicationId, double temperature, string temperatureUnit)
+        private async Task TemperatureReceived(string remoteApplicationId, string component, double temperature, string temperatureUnit)
         {
             switch (temperatureUnit)
             {
                 case "°C":
                     if (temperature >= CpuTemperatureThreshold)
                     {
-                        await AlarmDetected(remoteApplicationId, temperature, temperatureUnit);
+                        await TemperatureAboveTreshold(remoteApplicationId, component, temperature, temperatureUnit);
                     }
                     else
                     {
-                        await AlarmResolved(remoteApplicationId, temperature, temperatureUnit);
+                        await TemperatureBelowThreshold(remoteApplicationId, component, temperature, temperatureUnit);
                     }
                     break;
                 default:
@@ -156,36 +174,47 @@ namespace PublishTemperatureAlarms
             }
         }
 
-        private async Task AlarmResolved(string remoteApplicationId, double temperature, string temperatureUnit)
+        private async Task TemperatureAboveTreshold(string remoteApplicationId, string component, double temperature, string temperatureUnit)
         {
-            if (!Alarms.ContainsKey(remoteApplicationId))
+            var alarm = new Alarm()
             {
-                // no alarm detected, skip
+                ApplicationId = remoteApplicationId,
+                Component = component,
+                Temperature = temperature,
+            };
+
+            if (Alarms.Contains(alarm))
+            {
+                // keep current alarm
+                Console.WriteLine($"{remoteApplicationId}: temperature of {component} is {temperature}{temperatureUnit} (still above threshold)");
                 return;
             }
 
-            Console.WriteLine($"{remoteApplicationId}: temperature back to normal ({temperature}{temperatureUnit})");
-            string topic = $"{ApplicationPropertyPrefix}/alarms/{remoteApplicationId}";
-            await MqttClient.PublishAsync(topic, "resolved");
-            Alarms.Remove(remoteApplicationId);
+            Console.WriteLine($"{remoteApplicationId}: temperature alarm! ({component} {temperature}{temperatureUnit} above {CpuTemperatureThreshold}{temperatureUnit})");
+            Alarms.Add(alarm);
+            await PublishAlarms();
         }
 
-        private async Task AlarmDetected(string remoteApplicationId, double temperature, string temperatureUnit)
+        private async Task TemperatureBelowThreshold(string remoteApplicationId, string component, double temperature, string temperatureUnit)
         {
-            if (Alarms.ContainsKey(remoteApplicationId))
+            var alarm = new Alarm()
             {
-                if (Alarms[remoteApplicationId] >= temperature)
-                {
-                    // keep current alarm
-                    return;
-                }
+                ApplicationId = remoteApplicationId,
+                Component = component,
+                Temperature = temperature,
+            };
+
+            if (!Alarms.Contains(alarm))
+            {
+                // no alarm detected, skip
+                Console.WriteLine($"{remoteApplicationId}: temperature of {component} is {temperature}{temperatureUnit}");
+                return;
             }
 
-            Console.WriteLine($"{remoteApplicationId}: temperature alarm! ({temperature}{temperatureUnit} above {CpuTemperatureThreshold}{temperatureUnit})");
-            string topic = $"{ApplicationPropertyPrefix}/alarms/{remoteApplicationId}";
-            string payload = $"{temperature}{temperatureUnit} above {CpuTemperatureThreshold}{temperatureUnit}";
-            await MqttClient.PublishAsync(topic, payload);
-            Alarms[remoteApplicationId] = temperature;
+            Console.WriteLine($"{remoteApplicationId}: temperature of {component} back to normal ({temperature}{temperatureUnit})");
+            Alarms.Remove(alarm);
+
+            await PublishAlarms(alarm);
         }
 
         private static Task<bool> AttachShutdownFromLocalHandler()

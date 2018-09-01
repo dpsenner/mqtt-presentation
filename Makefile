@@ -11,10 +11,22 @@ PRESENTATION.md:
 	cd src && pandoc $(PANDOC_OPTS) -o PRESENTATION.pdf PRESENTATION.md
 	evince src/PRESENTATION.pdf
 
-publish_temperature:
+run-publish-temperature:
 	-src/publish_temperature/client.sh $(MQTT_BROKER_HOST)
 
-subscribe_temperature:
+run-temperature-alarm:
+	-dotnet run --project src/publish_temperature_alarms/PublishTemperatureAlarms/PublishTemperatureAlarms.csproj -- run -h $(MQTT_BROKER_HOST)
+
+set-temperature-alarm-cpu-threshold-low:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t /temperature-alarm/property/cpu-threshold/set -m 30
+
+set-temperature-alarm-cpu-threshold-normal:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t /temperature-alarm/property/cpu-threshold/set -m 65
+
+shutdown-temperature-alarm:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t /temperature-alarm/command/shutdown -m very-secret
+
+subscribe-all:
 	-mosquitto_sub -h $(MQTT_BROKER_HOST) -v -t '#'
 
 clean:

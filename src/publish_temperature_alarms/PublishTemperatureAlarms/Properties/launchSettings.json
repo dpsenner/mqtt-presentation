@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PublishTemperatureAlarms": {
+      "commandName": "Project",
+      "commandLineArgs": "run -h 10.10.10.60"
+    }
+  }
+}

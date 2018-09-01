@@ -12,7 +12,7 @@ do
 	sensors | grep "^temperature" | awk '{print substr($1,0,length($1)-1)" "substr($2,2)}' | while IFS= read -r line; do
 		topic_suffix=$(echo $line | awk '{print $1}' | sed -e 's/^temperature\///')
 		temperature=$(echo $line | awk '{print $2}')
-		topic="/sensors/temperature/$CLIENT_ID/$topic_suffix"
+		topic="/sensor/temperature/$CLIENT_ID/$topic_suffix"
 		$PUBLISH -h $BROKER -t $topic -m "$temperature"
 		echo "$topic: $temperature"
 	done

@@ -54,24 +54,32 @@ MQTT is a light weight protocol that:
 
 * Designing topics can be challenging
 * Designing payloads can be challenging
-* Publisher is decoupled from subscriber both spatially and by time
+* Publisher is decoupled from subscriber
 * Request-Response is a special case
 
 ## First hands on
 
 * Clients that publish temperature information
+es
 
 ## Publish-Subscribe: Request-Response
 
-* Client publishes requests to `{Endpoint}/Request/{RequestId}`
-* Service subscribes to `{Endpoint}/Request/+`
-* Service publishes responses to `{Endpoint}/Response/{RequestId}`
-* Client subscribes to response topic
-* Clients should implement deadlines
+* Request topic:  `{Endpoint}/Request/{RequestId}`
+* Response topic: `{Endpoint}/Response/{RequestId}`
+
+## Publish-Subscribe: Echo
+
+* Service subscribes on `Echo/Request/+`
+* Client subscribes on `Echo/Response/1`
+* Client publishes on `Echo/Request/1`
+* Service publishes on `Echo/Response/1`
 
 ## Second hands on
 
 ## Questions?
 
 ## Thanks
+
+* dpsenner@gmail.com
+* dpsenner@apache.org
 

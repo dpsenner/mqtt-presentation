@@ -10,8 +10,11 @@ PRESENTATION.md:
 	cd src && pandoc $(PANDOC_OPTS) -o PRESENTATION.pdf PRESENTATION.md
 	evince src/PRESENTATION.pdf
 
-publish_temperature_client:
+publish_temperature:
 	-src/publish_temperature/client.sh
+
+subscribe_temperature:
+	-mosquitto_sub -h localhost -v -t '#'
 
 clean:
 	-@rm -f src/*.pdf

@@ -12,6 +12,7 @@ Welcome to HTA 2018.
 
 * Software engineer since 2005
 * Active member of the Apache Software Foundation
+* Working in the industry, providing customers with automation and control systems
 
 ## Request - Response
 
@@ -33,7 +34,7 @@ Welcome to HTA 2018.
 
 MQTT is a light weight protocol that:
 
-* provides publishe-subscribe pattern
+* provides publish-subscribe pattern
 * is designed to consume only very little power
 * requires only a very small memory footprint
 * requires very low bandwith
@@ -47,6 +48,7 @@ MQTT is a light weight protocol that:
 
 * Scalability
 * Extensibility
+* Naturally fits async and event driven programming
 
 ## Publish-Subscribe: Considerations
 
@@ -55,7 +57,21 @@ MQTT is a light weight protocol that:
 * Publisher is decoupled from subscriber both spatially and by time
 * Request-Response is a special case
 
-# Publish-Subscribe: Request-Response Topics
+## First hands on
 
-* `{Endpoint}/Request/{RequestId}`
-* `{Endpoint}/Response/{RequestId}`
+* Clients that publish temperature information
+
+## Publish-Subscribe: Request-Response
+
+* Client publishes requests to `{Endpoint}/Request/{RequestId}`
+* Service subscribes to `{Endpoint}/Request/+`
+* Service publishes responses to `{Endpoint}/Response/{RequestId}`
+* Client subscribes to response topic
+* Clients should implement deadlines
+
+## Second hands on
+
+## Questions?
+
+## Thanks
+

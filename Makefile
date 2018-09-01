@@ -10,5 +10,8 @@ PRESENTATION.md:
 	cd src && pandoc $(PANDOC_OPTS) -o PRESENTATION.pdf PRESENTATION.md
 	evince src/PRESENTATION.pdf
 
+publish_temperature_client:
+	-src/publish_temperature/client.sh
+
 clean:
 	-@rm -f src/*.pdf

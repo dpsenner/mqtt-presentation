@@ -14,13 +14,13 @@ run-temperature-alarm:
 	-dotnet run --project src/publish_temperature_alarms/PublishTemperatureAlarms/PublishTemperatureAlarms.csproj -- run -h $(MQTT_BROKER_HOST)
 
 set-temperature-alarm-cpu-threshold-low:
-	mosquitto_pub -h $(MQTT_BROKER_HOST) -t /temperature-alarm/property/cpu-threshold/set -m 30
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/property/cpu-threshold/set -m 30
 
 set-temperature-alarm-cpu-threshold-normal:
-	mosquitto_pub -h $(MQTT_BROKER_HOST) -t /temperature-alarm/property/cpu-threshold/set -m 65
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/property/cpu-threshold/set -m 65
 
 shutdown-temperature-alarm:
-	mosquitto_pub -h $(MQTT_BROKER_HOST) -t /temperature-alarm/command/shutdown -m very-secret
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/command/shutdown -m very-secret
 
 subscribe-all:
 	-mosquitto_sub -h $(MQTT_BROKER_HOST) -v -t '#'

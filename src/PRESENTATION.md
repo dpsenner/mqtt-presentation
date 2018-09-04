@@ -19,14 +19,14 @@ date: Aug 31, 2018
 * Industry 4.0
 * Good slogans, communication and collaboration is the key
 
-## Request - Response
+## Request-Response
 
 * The classic approach
 * Application provides endpoints as a service
 * A well known pattern
 * Good toolings like grpc, swagger, ..
 
-## Request - Response: Disadvantages
+## Request-Response: Disadvantages
 
 * Tight coupling between client and service
 * Extending existing endpoints with more functionality is hard

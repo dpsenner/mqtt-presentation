@@ -44,6 +44,9 @@ def on_connect(client, userdata, flags, rc):
     # reconnect then subscriptions will be renewed.
     client.subscribe(get_application_topic("property/scan_rate"))
 
+def publish_scan_rate():
+    publish("property/scan_rate", "{0}".format(scan_rate))
+
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
     global scan_rate
@@ -85,6 +88,9 @@ while True:
     # TODO publish capabilities
     last_published_on = None
 
+    # publish scan rate
+    publish_scan_rate()
+
     # begin publishing temperature data
     while True:
         if last_published_on:
@@ -92,8 +98,11 @@ while True:
             if elapsed > scan_rate:
                 should_publish_now = True
                 last_published_on = time.time()
+            else:
+                should_publish_now = False
         else:
             should_publish_now = True
+            last_published_on = time.time()
         if should_publish_now:
             for sensor, value, unit in read_sensors():
                 topic = "property/{0}".format(sensor)

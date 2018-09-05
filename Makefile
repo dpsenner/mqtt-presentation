@@ -11,7 +11,7 @@ run-publish-temperature-sh:
 	-src/publish_temperature/client.sh $(MQTT_BROKER_HOST)
 
 run-publish-temperature-py:
-	-src/publish_temperature/client.py --host $(MQTT_BROKER_HOST)
+	-src/publish_temperature/client.py --host $(MQTT_BROKER_HOST) --scan-rate 5.0
 
 run-temperature-alarm:
 	-dotnet run --project src/publish_temperature_alarms/PublishTemperatureAlarms/PublishTemperatureAlarms.csproj -- run -h $(MQTT_BROKER_HOST)

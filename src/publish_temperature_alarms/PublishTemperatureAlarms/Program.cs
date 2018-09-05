@@ -56,19 +56,19 @@ namespace PublishTemperatureAlarms
                             cpuTemperatureThreshold = cpuTemperatureThresholdOption.Value().ToDouble();
                         }
 
+
                         var factory = new MqttFactory();
                         using (var client = factory.CreateMqttClient())
                         {
+                            var runCommandContext = new RunCommand(client, applicationId, cpuTemperatureThreshold);
                             Console.WriteLine($"Connecting to {host}:{port} ..");
                             var options = new MqttClientOptionsBuilder()
                                 .WithTcpServer(host, port)
+                                .WithWillMessage(runCommandContext.GetLastWill())
                                 .Build();
                             await client.ConnectAsync(options);
-
-                            await new RunCommand(client, applicationId, cpuTemperatureThreshold)
-                                .RunAsync();
+                            await runCommandContext.RunAsync();
                         }
-
                         return 0;
                     }
                     catch (Exception ex)

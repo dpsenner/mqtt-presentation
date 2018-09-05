@@ -66,13 +66,34 @@ namespace PublishTemperatureAlarms
             }
 
             await Task.WhenAny(shutdownFromLocalTask, ShutdownFromRemote.Task);
+
             Console.WriteLine($"Bye!");
+        }
+
+        public MqttApplicationMessage GetLastWill()
+        {
+            return new MqttApplicationMessageBuilder()
+                .WithTopic($"{ApplicationPrefix}/STATE")
+                .WithPayload("DEAD")
+                .WithRetainFlag()
+                .Build();
         }
 
         private async Task PublishBirth()
         {
+            await PublishState();
             await PublishAlarms();
             await PublishCpuThreshold();
+        }
+
+        private async Task PublishState()
+        {
+            var message = new MqttApplicationMessageBuilder()
+                .WithTopic($"{ApplicationPrefix}/STATE")
+                .WithPayload("ALIVE")
+                .WithRetainFlag()
+                .Build();
+            await MqttClient.PublishAsync(message);
         }
 
         private async Task PublishAlarms(params Alarm[] oldAlarms)
@@ -146,8 +167,7 @@ namespace PublishTemperatureAlarms
                 string payloadAsString = applicationMessage.ConvertPayloadToString();
                 string temperatureAsString = Regex.Replace(payloadAsString, "[^0-9\\.]", "");
                 double temperature = temperatureAsString.ToDouble();
-                string temperatureUnit = payloadAsString.Replace(temperatureAsString, "");
-                await TemperatureReceived(remoteApplicationId, component, temperature, temperatureUnit);
+                await TemperatureReceived(remoteApplicationId, component, temperature);
             }
             else
             {
@@ -155,26 +175,19 @@ namespace PublishTemperatureAlarms
             }
         }
 
-        private async Task TemperatureReceived(string remoteApplicationId, string component, double temperature, string temperatureUnit)
+        private async Task TemperatureReceived(string remoteApplicationId, string component, double temperature)
         {
-            switch (temperatureUnit)
+            if (temperature >= CpuTemperatureThreshold)
             {
-                case "°C":
-                    if (temperature >= CpuTemperatureThreshold)
-                    {
-                        await TemperatureAboveTreshold(remoteApplicationId, component, temperature, temperatureUnit);
-                    }
-                    else
-                    {
-                        await TemperatureBelowThreshold(remoteApplicationId, component, temperature, temperatureUnit);
-                    }
-                    break;
-                default:
-                    throw new NotImplementedException($"{temperatureUnit} not implemented");
+                await TemperatureAboveTreshold(remoteApplicationId, component, temperature);
+            }
+            else
+            {
+                await TemperatureBelowThreshold(remoteApplicationId, component, temperature);
             }
         }
 
-        private async Task TemperatureAboveTreshold(string remoteApplicationId, string component, double temperature, string temperatureUnit)
+        private async Task TemperatureAboveTreshold(string remoteApplicationId, string component, double temperature)
         {
             var alarm = new Alarm()
             {
@@ -186,16 +199,16 @@ namespace PublishTemperatureAlarms
             if (Alarms.Contains(alarm))
             {
                 // keep current alarm
-                Console.WriteLine($"{remoteApplicationId}: temperature of {component} is {temperature}{temperatureUnit} (still above threshold)");
+                Console.WriteLine($"{remoteApplicationId}: temperature of {component} is {temperature}°C (still above threshold)");
                 return;
             }
 
-            Console.WriteLine($"{remoteApplicationId}: temperature alarm! ({component} {temperature}{temperatureUnit} above {CpuTemperatureThreshold}{temperatureUnit})");
+            Console.WriteLine($"{remoteApplicationId}: temperature alarm! ({component} {temperature}°C above {CpuTemperatureThreshold}°C)");
             Alarms.Add(alarm);
             await PublishAlarms();
         }
 
-        private async Task TemperatureBelowThreshold(string remoteApplicationId, string component, double temperature, string temperatureUnit)
+        private async Task TemperatureBelowThreshold(string remoteApplicationId, string component, double temperature)
         {
             var alarm = new Alarm()
             {
@@ -207,11 +220,11 @@ namespace PublishTemperatureAlarms
             if (!Alarms.Contains(alarm))
             {
                 // no alarm detected, skip
-                Console.WriteLine($"{remoteApplicationId}: temperature of {component} is {temperature}{temperatureUnit}");
+                Console.WriteLine($"{remoteApplicationId}: temperature of {component} is {temperature}°C");
                 return;
             }
 
-            Console.WriteLine($"{remoteApplicationId}: temperature of {component} back to normal ({temperature}{temperatureUnit})");
+            Console.WriteLine($"{remoteApplicationId}: temperature of {component} back to normal ({temperature}°C)");
             Alarms.Remove(alarm);
 
             await PublishAlarms(alarm);

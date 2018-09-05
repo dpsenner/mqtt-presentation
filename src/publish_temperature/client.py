@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import paho.mqtt.client as mqtt
 import argparse
+import json
 import re
 import socket
 import subprocess
@@ -43,7 +44,7 @@ def on_connect(client, userdata, flags, rc):
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
     client.subscribe(get_application_topic("command/rebirth"))
-    client.subscribe(get_application_topic("property/scan_rate"))
+    client.subscribe(get_application_topic("property/scan_rate/set"))
 
 def publish_scan_rate():
     publish("property/scan_rate", "{0}".format(scan_rate))
@@ -54,8 +55,17 @@ def publish_sensors():
         payload = "{0}".format(value)
         publish(topic, payload)
 
+def get_birth_topics():
+    yield get_application_topic("command/rebirth"), "sub"
+    yield get_application_topic("property/scan_rate"), "pub"
+    yield get_application_topic("property/scan_rate/set"), "sub"
+    for sensor, value, unit in read_sensors():
+        yield get_application_topic("property/{0}"), "pub"
+
 def publish_birth():
     publish("STATE", "ALIVE", retain=True)
+    # TODO publish capabilities
+    publish("BIRTH", json.dumps(list(get_birth_topics()), indent=2), retain=True)
     publish_scan_rate()
     publish_sensors()
 
@@ -63,7 +73,7 @@ def publish_birth():
 def on_message(client, userdata, msg):
     global scan_rate
     try:
-        if msg.topic == get_application_topic("property/scan_rate"):
+        if msg.topic == get_application_topic("property/scan_rate/set"):
             new_scan_rate = float(msg.payload.decode('utf-8'))
             if new_scan_rate >= 1.0:
                 print("Changing scan rate from {0} to {1}".format(scan_rate, new_scan_rate))
@@ -97,11 +107,6 @@ def read_sensors():
 
 # Subscribe to all interesting topics.
 while True:
-    # Begin with stating that the client is alive
-
-    # TODO publish capabilities
-
-    # publish scan rate
     publish_birth()
     last_published_on = time.time()
 

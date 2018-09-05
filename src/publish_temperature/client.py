@@ -42,10 +42,22 @@ def on_connect(client, userdata, flags, rc):
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
+    client.subscribe(get_application_topic("command/rebirth"))
     client.subscribe(get_application_topic("property/scan_rate"))
 
 def publish_scan_rate():
     publish("property/scan_rate", "{0}".format(scan_rate))
+
+def publish_sensors():
+    for sensor, value, unit in read_sensors():
+        topic = "property/{0}".format(sensor)
+        payload = "{0}".format(value)
+        publish(topic, payload)
+
+def publish_birth():
+    publish("STATE", "ALIVE", retain=True)
+    publish_scan_rate()
+    publish_sensors()
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
@@ -58,6 +70,9 @@ def on_message(client, userdata, msg):
                 scan_rate = new_scan_rate
             else:
                 print("Refusing to change the scan rate below 1.0")
+        elif msg.topic == get_application_topic("command/rebirth"):
+            print("Publishing birth as requested from remote")
+            publish_birth()
         else:
             print("Received an unhandled message on topic {0}".format(msg.topic))
     except Exception as ex:
@@ -83,31 +98,24 @@ def read_sensors():
 # Subscribe to all interesting topics.
 while True:
     # Begin with stating that the client is alive
-    publish("STATE", "ALIVE", retain=True)
 
     # TODO publish capabilities
-    last_published_on = None
 
     # publish scan rate
-    publish_scan_rate()
+    publish_birth()
+    last_published_on = time.time()
 
     # begin publishing temperature data
     while True:
-        if last_published_on:
-            elapsed = time.time() - last_published_on
-            if elapsed > scan_rate:
-                should_publish_now = True
-                last_published_on = time.time()
-            else:
-                should_publish_now = False
-        else:
+        elapsed = time.time() - last_published_on
+        if elapsed > scan_rate:
             should_publish_now = True
             last_published_on = time.time()
+        else:
+            should_publish_now = False
+
         if should_publish_now:
-            for sensor, value, unit in read_sensors():
-                topic = "property/{0}".format(sensor)
-                payload = "{0}".format(value)
-                publish(topic, payload)
+            publish_sensors()
         time.sleep(0.1)
 
 

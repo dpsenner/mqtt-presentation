@@ -7,8 +7,11 @@ presentation:
 	cd src && pandoc $(PANDOC_OPTS) -o PRESENTATION.pdf PRESENTATION.md
 	evince src/PRESENTATION.pdf
 
-run-publish-temperature:
+run-publish-temperature-sh:
 	-src/publish_temperature/client.sh $(MQTT_BROKER_HOST)
+
+run-publish-temperature-py:
+	-src/publish_temperature/client.py --host $(MQTT_BROKER_HOST)
 
 run-temperature-alarm:
 	-dotnet run --project src/publish_temperature_alarms/PublishTemperatureAlarms/PublishTemperatureAlarms.csproj -- run -h $(MQTT_BROKER_HOST)

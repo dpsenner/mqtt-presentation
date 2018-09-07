@@ -61,32 +61,47 @@ def publish_sensors():
 def get_birth_topics():
     yield {
         "topic": get_application_topic("command/rebirth"),
-        "modes": ["sub"]
+        "modes": ["sub"],
+        "type": "null",
     }
     yield {
         "topic": get_application_topic("command/shutdown"),
         "modes": ["sub"],
+        "type": "null",
     }
     yield {
         "topic": get_application_topic("property/scan_rate"),
         "modes": ["pub"],
+        "type": "numeric",
+        "quantity": "duration",
+        "unit": "seconds",
     }
     yield {
         "topic": get_application_topic("property/scan_rate/set"),
         "modes": ["sub"],
+        "type": "numeric",
+        "quantity": "duration",
+        "unit": "seconds",
     }
     for sensor, value, unit in read_sensors():
+        if unit in ["RPM"]:
+            quantity = "rate"
+            unit = "rotations_per_minute"
+        elif unit in ["°C"]:
+            quantity = "temperature"
+            unit = "degree_celsius"
         yield {
             "topic": get_application_topic("property/{0}".format(sensor)),
             "modes": ["pub"],
+            "type": "numeric",
+            "quantity": quantity,
+            "unit": unit,
         }
 
 def publish_birth():
     publish("STATE", "ALIVE", retain=True)
     # TODO publish capabilities
     publish("BIRTH", json.dumps(list(get_birth_topics()), indent=2), retain=True)
-    publish_scan_rate()
-    publish_sensors()
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
@@ -120,13 +135,6 @@ def on_connect(client, userdata, flags, rc):
     print("Connected to {0}:{1}".format(host, port))
     connected = True
 
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-    client.subscribe(get_application_topic("command/rebirth"))
-    client.subscribe(get_application_topic("command/shutdown"))
-    client.subscribe(get_application_topic("property/scan_rate/set"))
-    publish_birth()
-
 def on_disconnect(client, userdata, rc):
     global alive
     global connected
@@ -142,20 +150,23 @@ client.connect(host, port, 60)
 client.loop_start()
 
 while alive:
-    last_published_on = time.time()
+    while not connected:
+        time.sleep(0.1)
+
+    # subscriptions will be renewed on initial connect or reconnect
+    client.subscribe(get_application_topic("command/rebirth"))
+    client.subscribe(get_application_topic("command/shutdown"))
+    client.subscribe(get_application_topic("property/scan_rate/set"))
+    publish_birth()
+    last_published_on = 0
 
     # begin publishing temperature data
     while connected:
-        elapsed = time.time() - last_published_on
-        if elapsed > scan_rate:
-            should_publish_now = True
-            last_published_on = time.time()
-        else:
-            should_publish_now = False
-
-        if should_publish_now:
+        if time.time() - last_published_on > scan_rate:
             publish_sensors()
+            last_published_on = time.time()
         time.sleep(0.1)
 
     # sleep until reconnected
-    time.sleep(1.0)
+    while not connected:
+        time.sleep(1.0)

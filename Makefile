@@ -22,6 +22,12 @@ set-temperature-alarm-cpu-threshold-low:
 set-temperature-alarm-cpu-threshold-normal:
 	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/property/cpu-threshold/set -m 65
 
+rebirth-temperature-sensor-mugen:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t mugen/command/rebirth -m yes
+
+shutdown-temperature-sensor-mugen:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t mugen/command/shutdown -m yes
+
 shutdown-temperature-alarm:
 	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/command/shutdown -m very-secret
 

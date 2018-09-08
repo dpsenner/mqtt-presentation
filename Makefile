@@ -31,6 +31,9 @@ shutdown-temperature-sensor-mugen:
 shutdown-temperature-alarm:
 	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/command/shutdown -m very-secret
 
+run-chat-client:
+	-src/chat_client/main.py
+
 subscribe-all:
 	-mosquitto_sub -h $(MQTT_BROKER_HOST) -v -t '#'
 

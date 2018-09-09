@@ -138,7 +138,8 @@ Client <--pub comp--- Broker
 
 ## MQTT QoS 1: use when..
 
-* You need to get every message and application layer handles duplicates
+* You need to get every message
+* Application layer handles duplicates
 * Functional requirements do not tolerate QoS 2 overhead
 
 ## MQTT QoS 2: use when..
@@ -153,9 +154,9 @@ Client <--pub comp--- Broker
 * Broker stores the retained message
 * When an application subscribes, it receives the retained message
 
-## MQTT pattern: rebirth
+## MQTT rebirth topic
 
-* An alternative to retained messages
+* An alternative to retained messages if clients are alive
 * Applications subscribe to a topic like `rebirth`
 * When a message arrives the application publishes its state
 * Does not require a retained message
@@ -176,41 +177,17 @@ Client <--pub comp--- Broker
 * `JSON` is supported by many applications and is human readable
 * `protobuf` shines on embedded devices with limited resources
 
-## Implementing Request-Response
+## Implementing Request-Response?
 
-* Request topic:  `{endpoint}/request/{requestId}`
-* Response topic: `{endpoint}/response/{requestId}`
-
-## Implementing Request-Response: Echo
-
-* Service subscribes to `echo/request/+`
-* Client subscribes to `echo/response/1`
-* Client publishes to `echo/request/1`
-* Service publishes to `echo/response/1`
-
-## Request-Response Alternative 1
-
-In case changes require a response both on success and failure:
-
-* Publish values: `{applicationId}/property/{name}`
-* Topic for changes: `{applicationId}/property/{name}/request`
-* Topic for change responses: `{applicationId}/property/{name}/response`
-
-## Request-Response Alternative 2
-
-In case changes require a response both on success and failure where change
-requests can be identified uniquely:
-
-* Publish values: `{applicationId}/property/{name}`
-* Topic for changes: `{applicationId}/property/{name}/request/{id}`
-* Topic for change responses: `{applicationId}/property/{name}/response/{id}`
-
-## Request-Response Alternative 3
-
-In case changes require a response only on success:
-
-* Publish topic: `{applicationId}/property/{name}`
-* Topic for changes: `{applicationId}/property/{name}/set`
+* Better design topics and payloads for
+    * The state of the system
+    * The information that needs to be exchanged
+* Use a higher QoS than 0
+* One or more topics to know whether the node and its components is alive
+* One or more topics for the request data
+* One or more topics for the response data
+    * Successful response
+    * Failure responses
 
 ## Hands on
 

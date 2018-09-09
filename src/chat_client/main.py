@@ -143,10 +143,11 @@ class ChatClient:
 
         while True:
             input = self._ui.readinput("{0}> ".format(self._nickname))
-            self._print_message(self._nickname, input)
             if input in ["/q", "/quit"]:
+                self._print_message(self._nickname, input)
                 break
             elif input.startswith("/connect"):
+                self._print_message(self._nickname, input)
                 m = re.match("^\/connect[ ]?([^ $]*)[ ]?([\d]*)$", input)
                 if not m:
                     self._print_appmessage("Usage: /connect HOST PORT")
@@ -162,19 +163,24 @@ class ChatClient:
                 
                 self._connect(host, port)
             elif input in ["/disconnect"]:
+                self._print_message(self._nickname, input)
                 self._disconnect()
             elif input.startswith("/join"):
+                self._print_message(self._nickname, input)
                 channel = input[len("/join "):]
                 self._join_channel(channel)
             elif input in ["/leave"]:
+                self._print_message(self._nickname, input)
                 self._leave_channel()
             elif input.startswith("/nickname"):
+                self._print_message(self._nickname, input)
                 nickname = input[len("/nickname"):].strip()
                 if not nickname:
                     self._print_appmessage("Usage: /nickname NAME")
                     continue
                 self._change_nickname(nickname)
             elif input in ["/h", "/help"]:
+                self._print_message(self._nickname, input)
                 self._print_appmessage("/h /help           print this help message")
                 self._print_appmessage("/connect HOST:PORT connect to an mqtt broker, the port is optional")
                 self._print_appmessage("/disconnect        disconnect from the mqtt broker")
@@ -201,6 +207,7 @@ class ChatClient:
                 if msg.topic == self._get_channel_topic():
                     payload = msg.payload.decode('utf8')
                     author, message = json.loads(payload)
+                    self._print_message(author, message)
             else:
                 print("Received an unhandled message on topic {0}".format(msg.topic))
         except Exception as ex:
@@ -261,6 +268,8 @@ class ChatClient:
     
     def _change_nickname(self, nickname):
         self._print_appmessage("Your nickname is now {0}".format(nickname))
+        if self._mqtt_client is not None:
+            self._send_message("Changed nickname to {0}".format(nickname))
         self._nickname = nickname
     
     def _get_channel_topic(self):

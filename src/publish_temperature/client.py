@@ -16,6 +16,7 @@ class SensorNode:
         self._connected = False
         self._alive = False
         self._client = None
+        self._last_published_on = 0
 
     def run(self):
         self._client = mqtt.Client()

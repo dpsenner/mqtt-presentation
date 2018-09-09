@@ -132,7 +132,7 @@ Client <--pub comp--- Broker
 
 ## MQTT QoS 0: use when..
 
-* connection is stable over a wire
+* connection is stable (wired lan)
 * messages can be lost occasionally
 * message queuing is not needed
 

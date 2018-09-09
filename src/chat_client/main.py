@@ -114,7 +114,10 @@ class ChatUI:
             author_maxlength = max([len(author) for author, _ in messages])
             i = 0
             for author, message in messages:
-                line = "{0}: {1}".format(author.rjust(author_maxlength), message)
+                if author:
+                    line = "{0}: {1}".format(author.rjust(author_maxlength), message)
+                else:
+                    line = message
                 if i >= h:
                     break
                 self._chatbuffer_window.addstr(i, 0, line)
@@ -139,7 +142,8 @@ class ChatClient:
     def run(self):
         self._print_appmessage("Hello!")
         self._print_appmessage("Change your nickname with /nickname")
-        self._print_appmessage("Connect to an mqtt broker with /connect")
+        self._print_appmessage("Connect to a mqtt broker with /connect")
+        self._print_appmessage("Join a channel with /join")
 
         while True:
             input = self._ui.readinput("{0}> ".format(self._nickname))
@@ -167,17 +171,14 @@ class ChatClient:
                 self._disconnect()
             elif input.startswith("/join"):
                 self._print_message(self._nickname, input)
-                channel = input[len("/join "):]
+                channel = input[len("/join "):].strip()
                 self._join_channel(channel)
             elif input in ["/leave"]:
                 self._print_message(self._nickname, input)
                 self._leave_channel()
             elif input.startswith("/nickname"):
                 self._print_message(self._nickname, input)
-                nickname = input[len("/nickname"):].strip()
-                if not nickname:
-                    self._print_appmessage("Usage: /nickname NAME")
-                    continue
+                nickname = input[len("/nickname "):]
                 self._change_nickname(nickname)
             elif input in ["/h", "/help"]:
                 self._print_message(self._nickname, input)
@@ -241,35 +242,54 @@ class ChatClient:
         self._mqtt_client = None
 
     def _join_channel(self, channel):
+        if not channel:
+            self._print_appmessage("Channel name cannot be empty")
+            return
+        if channel.strip() != channel:
+            self._print_appmessage("Channel name must not contain leading or trailing whitespaces")
+            return
         if self._channel:
             # leave first
             self._leave_channel()
         self._channel = channel
         self._mqtt_client.subscribe(self._get_channel_topic())
-        self._print_appmessage("Joined channel {0}".format(self._channel))
+        self._send_channel_message("{0} joined the channel".format(self._nickname))
     
     def _leave_channel(self):
         if not self._channel:
             self._print_appmessage("Cannot leave channel: join a channel first")
         
         self._mqtt_client.unsubscribe(self._get_channel_topic())
-        self._print_appmessage("Left channel {0}".format(self._channel))
+        self._send_channel_message("{0} left the channel".format(self._nickname))
         self._channel = None
 
     def _send_message(self, message):
+        self._send_message_as(self._nickname, message)
+
+    def _send_channel_message(self, message):
+        self._send_message_as("", message)
+
+    def _send_message_as(self, author, message):
         if self._mqtt_client is None:
             self._print_appmessage("Cannot send message: not connected yet")
             return
         if self._channel is None:
             self._print_appmessage("Cannot send message: join a channel first")
             return
-        payload = json.dumps((self._nickname, message)).encode('utf8')
+        payload = json.dumps((author, message)).encode('utf8')
         self._mqtt_client.publish(self._get_channel_topic(), payload)
     
     def _change_nickname(self, nickname):
-        self._print_appmessage("Your nickname is now {0}".format(nickname))
-        if self._mqtt_client is not None:
-            self._send_message("Changed nickname to {0}".format(nickname))
+        if not nickname:
+            self._print_appmessage("Nickname cannot be empty")
+            return
+        if nickname.strip() != nickname:
+            self._print_appmessage("Nickname must not contain leading or trailing whitespaces")
+            return
+        if self._mqtt_client is not None and self._channel is not None:
+            self._send_channel_message("{0} changed nickname to {1}".format(self._nickname, nickname))
+        else:
+            self._print_appmessage("Your nickname is now {0}".format(nickname))
         self._nickname = nickname
     
     def _get_channel_topic(self):

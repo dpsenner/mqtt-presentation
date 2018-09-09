@@ -56,7 +56,7 @@ This approach shines as a more generic concept to the classic request-response p
 * Designing topics can be challenging
 * Designing payloads can be challenging
 * A publisher may assume that a subscriber is listening, when in fact it is not
-* Assuring delivery of messages involves additional topics and overheads
+* Assuring delivery of messages to subscriber involves additional topics and overheads
 * Hiding information from subscribers (can be solved with encryption)
 * Rogue publishes by malicious or faulty nodes (can be solved with signatures)
 
@@ -64,31 +64,117 @@ This approach shines as a more generic concept to the classic request-response p
 
 MQTT is a light weight protocol that:
 
-* provides publish-subscribe pattern
-* is designed to consume only very little power
-* requires only a very small memory footprint
-* requires very low bandwith
+* Provides publish-subscribe pattern
+* Is designed to consume only very little power
+* Requires only a very small memory footprint
+* Requires very low bandwith
 
 ## MQTT topics and payloads
 
-* The structure of information can be encoded into topics or the payload
-* What's better depends on the application
-* A topic should transport a piece of information that belongs together
-* What is encoded into the topic or the payload depends on the functional requirements
-* To MQTT payload is an array of bytes and can transport up to 256Mb
+* Information can be encoded into topics
+* Information can be encoded into the payload
+* Information can be encoded into both
+* What's better depends on the functional requirements
 
-## Serializing payload
+## MQTT QoS
+
+Quality of service flag influences the message delivery:
+
+* messages from the publisher to the broker
+* messages from the subscriber to the broker
+* but not messages from the publisher to the subcriber
+
+## MQTT QoS 0
+
+* message arrives at most once
+* no guarantee of delivery
+* no retransmission by the client
+* no message queuing
+* fastest
+
+## MQTT QoS 0: flow
+
+```text
+Client --pub qos0--> Broker
+```
+
+## MQTT QoS 1
+
+* message arrives at least once
+* guaranteed delivery
+* no retransmission by the client
+* messages are queued
+* slower
+
+## MQTT QoS 1: flow
+
+```text
+Client ---pub qos1--> Broker
+Client <--pub ack---- Broker
+```
+
+## MQTT QoS 2
+
+* message arrives exactly once
+* guaranteed delivery
+* retransmission of messages
+* messages are queued
+* slowest
+
+## MQTT QoS 2: flow
+
+```text
+Client ---pub qos2--> Broker
+Client <--pub rec---- Broker
+Client ---pub rel---> Broker
+Client <--pub comp--- Broker
+```
+
+## MQTT QoS 0: use when..
+
+* connection is stable over a wire
+* messages can be lost occasionally
+* message queuing is not needed
+
+## MQTT QoS 1: use when..
+
+* you need to get every message and application layer handles duplicates
+* functional requirements do not tolerate QoS 2 overhead
+
+## MQTT QoS 2: use when..
+
+* it is critical for the application that messages arrive exactly once
+* be aware of the four-part handshake overhead
+
+## MQTT retained messages
+
+* Applications may not be subscribed or running when a message is published
+* Retaining a message is an effective way to deliver the message anyway
+* Broker stores the retained message
+* When an application subscribes, it receives the retained message
+
+## MQTT pattern: rebirth
+
+* An alternative to retained messages
+* Applications subscribe to a topic like `rebirth`
+* When a message arrives the application publishes its state
+* Does not require a retained message
+
+## MQTT limitations
+
+* A message can transport at most ~256Mb in the payload
+
+## MQTT topic: best practice
+
+* A topic should transport one piece of information that belongs together
+* Do design topic with the same kind of information to be on the same nesting level
+
+## MQTT payload: best practice
 
 * May be any format
 * Even a protocol with headers and payloads
 * `JSON` is supported by many applications and is human readable
 * `protobuf` shines on embedded devices with limited resources
-
-## First hands on
-
-* Clients that publish temperature information
-* A larger number of topics
-* Transporting primitives
 
 ## Implementing Request-Response
 
@@ -126,7 +212,13 @@ In case changes require a response only on success:
 * Publish topic: `{applicationId}/property/{name}`
 * Topic for changes: `{applicationId}/property/{name}/set`
 
-## Second hands on
+## Hands on
+
+* Clients publish sensor data
+* Shell script
+* Python script
+
+## Hands on
 
 * Temperature alarm service
 

@@ -80,17 +80,17 @@ MQTT is a light weight protocol that:
 
 Quality of service flag influences the message delivery:
 
-* messages from the publisher to the broker
-* messages from the subscriber to the broker
-* but not messages from the publisher to the subcriber
+* Messages from the publisher to the broker
+* Messages from the subscriber to the broker
+* But not messages from the publisher to the subcriber
 
 ## MQTT QoS 0
 
-* message arrives at most once
-* no guarantee of delivery
-* no retransmission by the client
-* no message queuing
-* fastest
+* Message arrives at most once
+* No guarantee of delivery
+* No retransmission by the client
+* No message queuing
+* Fastest
 
 ## MQTT QoS 0: flow
 
@@ -100,11 +100,11 @@ Client --pub qos0--> Broker
 
 ## MQTT QoS 1
 
-* message arrives at least once
-* guaranteed delivery
-* no retransmission by the client
-* messages are queued
-* slower
+* Message arrives at least once
+* Guaranteed delivery
+* No retransmission by the client
+* Messages are queued
+* Slower
 
 ## MQTT QoS 1: flow
 
@@ -115,11 +115,11 @@ Client <--pub ack---- Broker
 
 ## MQTT QoS 2
 
-* message arrives exactly once
-* guaranteed delivery
-* retransmission of messages
-* messages are queued
-* slowest
+* Message arrives exactly once
+* Guaranteed delivery
+* Retransmission of messages
+* Messages are queued
+* Slowest
 
 ## MQTT QoS 2: flow
 
@@ -132,19 +132,19 @@ Client <--pub comp--- Broker
 
 ## MQTT QoS 0: use when..
 
-* connection is stable (wired lan)
-* messages can be lost occasionally
-* message queuing is not needed
+* Connection is stable (wired lan)
+* Messages can be lost occasionally
+* Message queuing is not needed
 
 ## MQTT QoS 1: use when..
 
-* you need to get every message and application layer handles duplicates
-* functional requirements do not tolerate QoS 2 overhead
+* You need to get every message and application layer handles duplicates
+* Functional requirements do not tolerate QoS 2 overhead
 
 ## MQTT QoS 2: use when..
 
-* it is critical for the application that messages arrive exactly once
-* be aware of the four-part handshake overhead
+* It is critical for the application that messages arrive exactly once
+* Be aware of the four-part handshake overhead
 
 ## MQTT retained messages
 
@@ -235,6 +235,7 @@ In case changes require a response only on success:
 * The big advantages over MQTT are:
     * Discovery of publishers and subscribers
     * Ownership of topics
+    * Persistent storage of messages
 
 ## Q&A
 

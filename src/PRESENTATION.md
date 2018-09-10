@@ -1,7 +1,7 @@
 ---
 title: "MQTT"
 author: Dominik Psenner
-date: Aug 31, 2018
+date: Sep 21, 2018
 ---
 
 # Welcome
@@ -50,15 +50,6 @@ This approach shines as a more generic concept to the classic request-response p
 * Extensibility
 * Naturally fits async and event driven programming
 * Request-Response is a special case
-
-## Publish-Subscribe: Considerations
-
-* Designing topics can be challenging
-* Designing payloads can be challenging
-* A publisher may assume that a subscriber is listening, when in fact it is not
-* Assuring delivery of messages to subscriber involves additional topics and overheads
-* Hiding information from subscribers (can be solved with encryption)
-* Rogue publishes by malicious or faulty nodes (can be solved with signatures)
 
 ## What is MQTT
 
@@ -130,22 +121,22 @@ Client ---pub rel---> Broker
 Client <--pub comp--- Broker
 ```
 
-## MQTT QoS 0: use when..
+## MQTT QoS 0: use when ..
 
-* Connection is stable (wired lan)
+* Connection is very stable; like wired lan
 * Messages can be lost occasionally
 * Message queuing is not needed
 
-## MQTT QoS 1: use when..
+## MQTT QoS 1: use when ..
 
 * You need to get every message
 * Application layer handles duplicates
 * Functional requirements do not tolerate QoS 2 overhead
 
-## MQTT QoS 2: use when..
+## MQTT QoS 2: use when ..
 
 * It is critical for the application that messages arrive exactly once
-* Be aware of the four-part handshake overhead
+* The four-part handshake overhead is not an issue
 
 ## MQTT retained messages
 
@@ -161,53 +152,56 @@ Client <--pub comp--- Broker
 * When a message arrives the application publishes its state
 * Does not require a retained message
 
-## MQTT persistent session
+## What happens if ..
 
-* Messages could be lost if a client is restarted or the connection to the broker is interrupted
-* A client must subscribe on reconnect
-* Having all messages retained is not a great deal
-* A solution to this problem are persistent sessions
+* A client is restarted?
+* The connection to the broker is interrupted?
+* Do all messages have to be retained?
+* What happens with subscriptions of the client?
 
 ## MQTT persistent session
 
 A persistent session includes all information that the broker knows about a client:
 
-* Existence of the session
-* Subscribtions of the client
-* All messages with QoS > 0 that the client did not acknowledge yet
-* All *NEW* messages with QoS > 0 that the client would miss while being offline
-* All QoS 2 messages from the client that are not yet acknowledged completely
+* Existence of a client session
+* Subscriptions of the client
+* All messages with QoS > 0 that the client did not ack yet
+* All new messages with QoS > 0 that the client would miss
+* All QoS 2 messages from the client that are not yet ack'ed completely
 
 ## MQTT persistent session: when to use?
 
 * A client must get all messages, even if it is offline
-* A client has very limited resources
-    * Android power saving of background tasks
+* A client has very limited resources, likw android app where the operating system restricts cpu usage to save battery
 
 ## MQTT persistent session: mosquitto
 
 * Persistent session data is stored in memory
 * Persistent session data is Written to disk:
-    * when mosquitto closes
-    * at configurable periodic intervals
+    * When mosquitto closes
+    * At configurable periodic intervals
 * Data is restored from disk on restart or signal
 * Persistent client expiration is disabled by default
 
 ## MQTT limitations
 
 * A message can transport at most ~256Mb in the payload
+* Broker is a single point of failure
+* A publisher may assume that a subscriber is listening, when in fact it is not
+* Assuring delivery to subscriber involves additional roundtrips
+* Publishes by malicious or faulty nodes: signatures
+* Hiding information from subscribers: encryption
 
 ## MQTT topic: best practice
 
 * A topic should transport one piece of information that belongs together
-* Do design topic with the same kind of information to be on the same nesting level
+* Design topic with the same kind of information to be on the same nesting level
 
 ## MQTT payload: best practice
 
-* May be any format
-* Even a protocol with headers and payloads
+* May be any binary format, even a protocol with headers and payloads
 * `JSON` is supported by many applications and is human readable
-* `protobuf` shines on embedded devices with limited resources
+* `protobuf` shines on embedded devices with very limited resources
 
 ## Implementing Request-Response?
 
@@ -221,15 +215,28 @@ A persistent session includes all information that the broker knows about a clie
     * Successful response
     * Failure responses
 
-## Hands on
+## Questions?
 
-* Clients publish sensor data
-* Shell script
-* Python script
+## Hands on: clone
 
-## Hands on
+This presentation along with examples can be found here:
 
-* Temperature alarm service
+https://github.com/dpsenner/mqtt-presentation.git
+
+## Hands on: chat
+
+* Chat application
+* Subscribe with console
+* Publish with console
+
+## Hands on: sensor data
+
+* Publishing sensor data
+    * Stateless shell application
+    * Stateful python application
+* Subscribing to sensor data
+    * Temperature alarms
+    * Temperature histogram
 
 ## Related Work: Sparkplug
 
@@ -251,7 +258,3 @@ A persistent session includes all information that the broker knows about a clie
 Questions?
 
 ## Thanks
-
-* dpsenner@gmail.com
-* dpsenner@apache.org
-

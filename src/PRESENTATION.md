@@ -161,6 +161,38 @@ Client <--pub comp--- Broker
 * When a message arrives the application publishes its state
 * Does not require a retained message
 
+## MQTT persistent session
+
+* Messages could be lost if a client is restarted or the connection to the broker is interrupted
+* A client must subscribe on reconnect
+* Having all messages retained is not a great deal
+* A solution to this problem are persistent sessions
+
+## MQTT persistent session
+
+A persistent session includes all information that the broker knows about a client:
+
+* Existence of the session
+* Subscribtions of the client
+* All messages with QoS > 0 that the client did not acknowledge yet
+* All *NEW* messages with QoS > 0 that the client would miss while being offline
+* All QoS 2 messages from the client that are not yet acknowledged completely
+
+## MQTT persistent session: when to use?
+
+* A client must get all messages, even if it is offline
+* A client has very limited resources
+    * Android power saving of background tasks
+
+## MQTT persistent session: mosquitto
+
+* Persistent session data is stored in memory
+* Persistent session data is Written to disk:
+    * when mosquitto closes
+    * at configurable periodic intervals
+* Data is restored from disk on restart or signal
+* Persistent client expiration is disabled by default
+
 ## MQTT limitations
 
 * A message can transport at most ~256Mb in the payload

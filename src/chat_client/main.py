@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import curses
 import json
 import paho.mqtt.client as mqtt
@@ -134,8 +134,9 @@ class ChatClient:
     def __init__(self, ui):
         self._ui = ui
         self._mqtt_client = None
-        self._mqtt_host = "localhost"
-        self._mqtt_port = 1883
+        self._mqtt_host = None
+        self._mqtt_port = None
+        self._mqtt_transport = None
         self._nickname = "nobody"
         self._channel = None
     
@@ -152,20 +153,24 @@ class ChatClient:
                 break
             elif input.startswith("/connect"):
                 self._print_message(self._nickname, input)
-                m = re.match("^\/connect[ ]?([^ $]*)[ ]?([\d]*)$", input)
+                m = re.match("^\/connect[ ]?([^ $]*)[ ]?(.*)[ ]?([\d]*)$", input)
                 if not m:
-                    self._print_appmessage("Usage: /connect HOST PORT")
+                    self._print_appmessage("Usage: /connect HOST TRANSPORT PORT")
                     continue
 
                 host = m.group(1)
                 if not host:
-                    host = self._mqtt_host
+                    host = None
                 if not m.group(2):
-                    port = self._mqtt_port
+                    transport = None
                 else:
-                    port = int(m.group(2))
+                    transport = m.group(2)
+                if not m.group(3):
+                    port = None
+                else:
+                    port = int(m.group(3))
                 
-                self._connect(host, port)
+                self._connect(host, port, transport)
             elif input in ["/disconnect"]:
                 self._print_message(self._nickname, input)
                 self._disconnect()
@@ -182,13 +187,20 @@ class ChatClient:
                 self._change_nickname(nickname)
             elif input in ["/h", "/help"]:
                 self._print_message(self._nickname, input)
-                self._print_appmessage("/h /help           print this help message")
-                self._print_appmessage("/connect HOST:PORT connect to an mqtt broker, the port is optional")
-                self._print_appmessage("/disconnect        disconnect from the mqtt broker")
-                self._print_appmessage("/join CHANNEL         join a channel")
-                self._print_appmessage("/leave             leave channel")
-                self._print_appmessage("/nickname NAME     change your nickname")
-                self._print_appmessage("/q /quit           exit")
+                self._print_appmessage("/h /help")
+                self._print_appmessage("    print this help message")
+                self._print_appmessage("/connect HOST PORT [tcp|websockets]")
+                self._print_appmessage("    connect to an mqtt broker, the port and transport is optional")
+                self._print_appmessage("/disconnect")
+                self._print_appmessage("    disconnect from the mqtt broker")
+                self._print_appmessage("/join CHANNEL")
+                self._print_appmessage("    join a channel")
+                self._print_appmessage("/leave")
+                self._print_appmessage("    leave channel")
+                self._print_appmessage("/nickname NAME")
+                self._print_appmessage("    change your nickname")
+                self._print_appmessage("/q /quit")
+                self._print_appmessage("    leave the chat and close the application")
             else:
                 # publish message
                 self._send_message(input)
@@ -214,23 +226,37 @@ class ChatClient:
         except Exception as ex:
             print("An unhandled exception occurred while processing a message on topic {0}: {1}".format(msg.topic, ex))
     
-    def _connect(self, host, port):
+    def _connect(self, host=None, port=None, transport=None):
         if self._mqtt_client is not None:
             self._print_appmessage("Cannot connect: already connected")
             return
-        self._print_appmessage("Connecting to {0}:{1} ..".format(host, port))
-        mqtt_client = mqtt.Client()
+        transports_allowed = ['tcp', 'websockets']
+        if transport is None:
+            transport = transports_allowed[0]
+        if transport not in transports_allowed:
+            self._print_appmessage("Cannot connect: transport must be one of {0}".format(transports_allowed))
+            return
+        if port is None:
+            if transport == "tcp":
+                port = 1883
+            elif transport == "websockets":
+                port = 8000
+        self._print_appmessage("Connecting to {0}:{1} using {2} ..".format(host, port, transport))
+        mqtt_client = mqtt.Client(transport=transport)
         mqtt_client.on_connect = self._on_connect
         mqtt_client.on_message = self._on_message
         mqtt_client.on_disconnect = self._on_disconnect
         try:
-            mqtt_client.connect(host, port, 60)
-            self._mqtt_client = mqtt_client
-            self._mqtt_client.loop_start()
-            self._mqtt_host = host
-            self._mqtt_port = port
+            mqtt_client.connect(host, port)
         except Exception as ex:
             self._print_appmessage("Could not connect: {0}".format(str(ex)))
+            return
+        # this only runs if we can connect to the broker
+        self._mqtt_client = mqtt_client
+        self._mqtt_client.loop_start()
+        self._mqtt_host = host
+        self._mqtt_port = port
+        self._mqtt_transport = transport
     
     def _disconnect(self):
         if self._mqtt_client is None:

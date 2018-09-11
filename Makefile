@@ -31,8 +31,16 @@ shutdown-temperature-sensor-mugen:
 shutdown-temperature-alarm:
 	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/command/shutdown -m very-secret
 
+install-python3-pip:
+	sudo apt install python3-pip
+
+install-virtualenv: install-python3-pip
+	sudo pip3 install virtualenv
+
+install-requirements: install-virtualenv
+
 run-chat-client:
-	-src/chat_client/main.py
+	-src/chat_client/run.sh
 
 subscribe-all:
 	-mosquitto_sub -h $(MQTT_BROKER_HOST) -v -t '#'

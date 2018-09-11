@@ -11,7 +11,7 @@ namespace PublishTemperatureAlarms
 {
     public class RunCommand
     {
-        public double CpuTemperatureThreshold { get; set; }
+        public double TemperatureThreshold { get; set; }
 
         public string ApplicationId { get; }
 
@@ -31,7 +31,7 @@ namespace PublishTemperatureAlarms
         {
             MqttClient = mqttClient;
             ApplicationId = applicationId;
-            CpuTemperatureThreshold = cpuTemperatureThreshold;
+            TemperatureThreshold = cpuTemperatureThreshold;
             ShutdownFromRemote = new TaskCompletionSource<bool>();
             Alarms = new List<Alarm>();
         }
@@ -112,7 +112,7 @@ namespace PublishTemperatureAlarms
 
         private async Task PublishCpuThreshold()
         {
-            await MqttClient.PublishAsync($"{ApplicationPropertyPrefix}/temperature-threshold", $"{CpuTemperatureThreshold}°C");
+            await MqttClient.PublishAsync($"{ApplicationPropertyPrefix}/temperature-threshold", $"{TemperatureThreshold}°C");
         }
 
         private async void Client_ApplicationMessageReceived(object sender, MqttApplicationMessageReceivedEventArgs e)
@@ -155,8 +155,8 @@ namespace PublishTemperatureAlarms
             {
                 string payloadAsString = applicationMessage.ConvertPayloadToString();
                 double temperature = payloadAsString.ToDouble();
-                Console.WriteLine($"{topic}: updated temperature threshold from {CpuTemperatureThreshold}°C to {temperature}°C");
-                CpuTemperatureThreshold = temperature;
+                Console.WriteLine($"{topic}: updated temperature threshold from {TemperatureThreshold}°C to {temperature}°C");
+                TemperatureThreshold = temperature;
                 await PublishCpuThreshold();
             }
             else if (topic.Contains("/property/temperature"))
@@ -177,7 +177,7 @@ namespace PublishTemperatureAlarms
 
         private async Task TemperatureReceived(string remoteApplicationId, string component, double temperature)
         {
-            if (temperature >= CpuTemperatureThreshold)
+            if (temperature >= TemperatureThreshold)
             {
                 await TemperatureAboveTreshold(remoteApplicationId, component, temperature);
             }
@@ -203,7 +203,7 @@ namespace PublishTemperatureAlarms
                 return;
             }
 
-            Console.WriteLine($"{remoteApplicationId}: temperature alarm! ({component} {temperature}°C above {CpuTemperatureThreshold}°C)");
+            Console.WriteLine($"{remoteApplicationId}: temperature alarm! ({component} {temperature}°C above {TemperatureThreshold}°C)");
             Alarms.Add(alarm);
             await PublishAlarms();
         }

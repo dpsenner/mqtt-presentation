@@ -217,23 +217,39 @@ A persistent session includes all information that the broker knows about a clie
 
 ## Questions?
 
-## Hands on: clone
+## Hands on: hivemq demo client
 
-This presentation along with examples can be found here:
-
-https://github.com/dpsenner/mqtt-presentation.git
+[http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
 
 ## Hands on: chat
 
 * Chat application
-* Subscribe with console
-* Publish with console
+* Topic: `chat/channel/+/message`
+* Payload: `["author", "message"]`
+
+## Hands on: git repository
+
+This presentation along with examples can be found here:
+
+[https://github.com/dpsenner/mqtt-presentation.git](https://github.com/dpsenner/mqtt-presentation.git)
 
 ## Hands on: sensor data
 
+* Topic: `{node}/property/temperature/{sensor}`
+* Payload: `34.8`
 * Publishing sensor data
     * Stateless shell application
     * Stateful python application
+* Subscription: `+/property/temperature/#`
+
+## Hands on: controlling nodes
+
+* Read topic: `{node}/property/scan-rate`
+* Write topic: `{node}/property/scan-rate/set`
+* Payload: seconds, for example `3.0`
+
+## Hands on: transforming data to other topics
+
 * Subscribing to sensor data
     * Temperature alarms
     * Temperature histogram

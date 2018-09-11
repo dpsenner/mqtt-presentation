@@ -1,5 +1,6 @@
 *.log
 *.pdf
+.venv/
 src/publish_temperature_alarms/PublishTemperatureAlarms/obj/
 src/publish_temperature_alarms/PublishTemperatureAlarms/bin/
 src/publish_temperature_alarms/.vs/

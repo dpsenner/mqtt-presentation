@@ -7,43 +7,46 @@ presentation:
 	cd src && pandoc $(PANDOC_OPTS) -o PRESENTATION.pdf PRESENTATION.md
 	evince src/PRESENTATION.pdf
 
-run-publish-temperature-sh:
-	-src/publish_temperature/client.sh $(MQTT_BROKER_HOST)
+chat-client:
+	-src/chat_client/run.sh $(MQTT_BROKER_HOST)
 
-run-publish-temperature-py:
-	-src/publish_temperature/client.py --host $(MQTT_BROKER_HOST) --scan-rate 5.0
-
-run-temperature-alarm:
-	-dotnet run --project src/publish_temperature_alarms/PublishTemperatureAlarms/PublishTemperatureAlarms.csproj -- run -h $(MQTT_BROKER_HOST)
-
-set-temperature-alarm-cpu-threshold-low:
-	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/property/cpu-threshold/set -m 30
-
-set-temperature-alarm-cpu-threshold-normal:
-	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/property/cpu-threshold/set -m 65
-
-rebirth-temperature-sensor-mugen:
-	mosquitto_pub -h $(MQTT_BROKER_HOST) -t mugen/command/rebirth -m yes
-
-shutdown-temperature-sensor-mugen:
-	mosquitto_pub -h $(MQTT_BROKER_HOST) -t mugen/command/shutdown -m yes
-
-shutdown-temperature-alarm:
-	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/command/shutdown -m very-secret
-
-install-python3-pip:
+chat-client-requirements:
 	sudo apt install python3-pip
-
-install-virtualenv: install-python3-pip
 	sudo pip3 install virtualenv
 
-install-requirements: install-virtualenv
+publish-temperature-stateless:
+	-src/publish_temperature_stateless/run.sh $(MQTT_BROKER_HOST)
 
-run-chat-client:
-	-src/chat_client/run.sh
+publish-temperature-stateless-requirements:
+	sudo apt install sensors mosquitto-clients
+
+publish-temperature-stateful:
+	-src/publish_temperature_stateful/run.sh $(MQTT_BROKER_HOST)
+
+publish-temperature-stateful-requirements:
+	sudo apt install python3-pip
+	sudo pip3 install virtualenv
+
+publish-temperature-stateful-rebirth-mugen:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t mugen/command/rebirth -m yes
+
+publish-temperature-stateful-shutdown-mugen:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t mugen/command/shutdown -m yes
+
+temperature-alarms:
+	-dotnet run --project src/publish_temperature_alarms/PublishTemperatureAlarms/PublishTemperatureAlarms.csproj -- run -h $(MQTT_BROKER_HOST)
+
+temperature-alarms-requirements:
+	sudo apt install dotnet-sdk-2.1
+
+temperature-alarms-temperature-threshold-low:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/property/temperature-threshold/set -m 30
+
+temperature-alarms-temperature-threshold-normal:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/property/temperature-threshold/set -m 65
+
+temperature-alarms-shutdown:
+	mosquitto_pub -h $(MQTT_BROKER_HOST) -t temperature-alarm/command/shutdown -m very-secret
 
 subscribe-all:
 	-mosquitto_sub -h $(MQTT_BROKER_HOST) -v -t '#'
-
-clean:
-	-@rm -f src/*.pdf

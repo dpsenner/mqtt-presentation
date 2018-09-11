@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import curses
 import json
 import paho.mqtt.client as mqtt
@@ -131,10 +132,10 @@ class ChatUI:
         self._inputbuffer_window.refresh()
 
 class ChatClient:
-    def __init__(self, ui):
+    def __init__(self, ui, mqtt_host=None):
         self._ui = ui
         self._mqtt_client = None
-        self._mqtt_host = None
+        self._mqtt_host = mqtt_host
         self._mqtt_port = None
         self._mqtt_transport = None
         self._nickname = "nobody"
@@ -160,7 +161,7 @@ class ChatClient:
 
                 host = m.group(1)
                 if not host:
-                    host = None
+                    host = self._mqtt_host
                 if not m.group(2):
                     transport = None
                 else:
@@ -328,9 +329,17 @@ class ChatClient:
         self._ui.chatbuffer_addmessage("$", message)
 
 def main(stdscr):
+    parser = argparse.ArgumentParser(description="Publish temperature sensors of this machine.")
+    parser.add_argument("--host", help="the host of the mqtt broker")
+    args = parser.parse_args()
+
+    if args.host:
+        host = args.host
+    else:
+        host = None
     stdscr.clear()
     ui = ChatUI(stdscr)
-    chatclient = ChatClient(ui)
+    chatclient = ChatClient(ui, host)
     chatclient.run()
 
 curses.wrapper(main)

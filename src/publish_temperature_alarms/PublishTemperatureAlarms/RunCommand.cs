@@ -60,7 +60,7 @@ namespace PublishTemperatureAlarms
             }
 
             // subscribe to topics: sensor data
-            foreach (var subscribeResult in await MqttClient.SubscribeAsync($"+/property/temperature/cpu/#"))
+            foreach (var subscribeResult in await MqttClient.SubscribeAsync($"+/property/temperature/#"))
             {
                 Console.WriteLine($"Subscribed to: {subscribeResult.TopicFilter.Topic}");
             }
@@ -112,7 +112,7 @@ namespace PublishTemperatureAlarms
 
         private async Task PublishCpuThreshold()
         {
-            await MqttClient.PublishAsync($"{ApplicationPropertyPrefix}/cpu-threshold", $"{CpuTemperatureThreshold}°C");
+            await MqttClient.PublishAsync($"{ApplicationPropertyPrefix}/temperature-threshold", $"{CpuTemperatureThreshold}°C");
         }
 
         private async void Client_ApplicationMessageReceived(object sender, MqttApplicationMessageReceivedEventArgs e)
@@ -151,15 +151,15 @@ namespace PublishTemperatureAlarms
                     await PublishBirth();
                 }
             }
-            else if (topic == $"{ApplicationPropertyPrefix}/cpu-threshold/set")
+            else if (topic == $"{ApplicationPropertyPrefix}/temperature-threshold/set")
             {
                 string payloadAsString = applicationMessage.ConvertPayloadToString();
                 double temperature = payloadAsString.ToDouble();
-                Console.WriteLine($"{topic}: updated cpu threshold from {CpuTemperatureThreshold}°C to {temperature}°C");
+                Console.WriteLine($"{topic}: updated temperature threshold from {CpuTemperatureThreshold}°C to {temperature}°C");
                 CpuTemperatureThreshold = temperature;
                 await PublishCpuThreshold();
             }
-            else if (topic.Contains("/property/temperature/cpu"))
+            else if (topic.Contains("/property/temperature"))
             {
                 var match = Regex.Match(topic, "^([^/]+)/property/temperature/(.+)");
                 string remoteApplicationId = match.Groups[1].Value;

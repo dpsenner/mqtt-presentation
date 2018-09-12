@@ -4,6 +4,7 @@ import curses
 import json
 import paho.mqtt.client as mqtt
 import re
+import string
 
 class CommandHistorian:
     def __init__(self):
@@ -41,7 +42,26 @@ class ChatUI:
 
         self._chatbuffer_window = stdscr.derwin(curses.LINES - 2, curses.COLS, 0, 0)
         self._inputbuffer_window = stdscr.derwin(1, curses.COLS, curses.LINES - 1, 0)
-        self._render()
+    
+    def __enter__(self):
+        # set up
+        self._stdscr.clear()
+        curses.curs_set(0)
+        self._stdscr.keypad(1)
+        curses.mousemask(1)
+        curses.noecho()
+        curses.cbreak()
+        curses.start_color()
+        curses.use_default_colors()
+        for i in range(0, 15):
+            curses.init_pair(i + 1, i, -1)
+        return self
+    
+    def __exit__(self, type, value, tb):
+        # clean up
+        curses.nocbreak()
+        curses.echo()
+        return False
 
     def readinput(self, prefix):
         self._inputbuffer = prefix
@@ -50,7 +70,10 @@ class ChatUI:
         self._inputhistory.push("")
         while True:
             i = self._stdscr.getch()
-            if i == ord('\n'):
+            if i == curses.KEY_MOUSE:
+                # pop mouse event
+                m = curses.getmouse()
+            elif i == ord('\n'):
                 result = self._inputbuffer[len(prefix):]
                 self._inputbuffer = ""
                 self._render_inputbuffer()
@@ -78,11 +101,16 @@ class ChatUI:
                 command = self._inputhistory.get()
                 self._inputbuffer = "{0}{1}".format(prefix, command)
                 self._render_inputbuffer()
-            elif 32 <= i <= 126:
-                # printable char
-                self._inputbuffer += chr(i)
-                self._inputhistory.put(self._inputbuffer[len(prefix):])
-                self._render_inputbuffer()
+            else:
+                c = chr(i)
+                if c in string.printable[:-5]:
+                    # printable char
+                    self._inputbuffer += c
+                    self._inputhistory.put(self._inputbuffer[len(prefix):])
+                    self._render_inputbuffer()
+                else:
+                    # unhandled key stroke
+                    pass
     
     def chatbuffer_addmessage(self, author, message):
         self._chatbuffer.append((author, message))
@@ -115,13 +143,14 @@ class ChatUI:
             author_maxlength = max([len(author) for author, _ in messages])
             i = 0
             for author, message in messages:
-                if author:
-                    line = "{0}: {1}".format(author.rjust(author_maxlength), message)
-                else:
-                    line = message
                 if i >= h:
                     break
-                self._chatbuffer_window.addstr(i, 0, line)
+                if author:
+                    line = "{0}: {1}".format(author.rjust(author_maxlength), message)
+                    self._chatbuffer_window.addstr(i, 0, line)
+                else:
+                    line = "{0}".format(message)
+                    self._chatbuffer_window.addstr(i, 0, line, curses.color_pair(7))
                 i += 1
         self._chatbuffer_window.refresh()
 
@@ -132,13 +161,15 @@ class ChatUI:
         self._inputbuffer_window.refresh()
 
 class ChatClient:
-    def __init__(self, ui, mqtt_host=None):
+    def __init__(self, ui, mqtt_host=None, nickname=None):
         self._ui = ui
         self._mqtt_client = None
         self._mqtt_host = mqtt_host
         self._mqtt_port = None
         self._mqtt_transport = None
-        self._nickname = "nobody"
+        if nickname is None:
+            nickname = "nobody"
+        self._nickname = nickname
         self._channel = None
     
     def run(self):
@@ -149,59 +180,56 @@ class ChatClient:
 
         while True:
             input = self._ui.readinput("{0}> ".format(self._nickname))
-            if input in ["/q", "/quit"]:
-                self._print_message(self._nickname, input)
-                break
-            elif input.startswith("/connect"):
-                self._print_message(self._nickname, input)
-                m = re.match("^\/connect[ ]?([^ $]*)[ ]?(.*)[ ]?([\d]*)$", input)
-                if not m:
-                    self._print_appmessage("Usage: /connect HOST TRANSPORT PORT")
-                    continue
+            if input.startswith("/"):
+                self._print_appmessage(input)
+                if input in ["/q", "/quit"]:
+                    break
+                elif input.startswith("/connect"):
+                    m = re.match("^\/connect[ ]?([^ $]*)[ ]?(.*)[ ]?([\d]*)$", input)
+                    if not m:
+                        self._print_appmessage("Usage: /connect HOST TRANSPORT PORT")
+                        continue
 
-                host = m.group(1)
-                if not host:
-                    host = self._mqtt_host
-                if not m.group(2):
-                    transport = None
+                    host = m.group(1)
+                    if not host:
+                        host = self._mqtt_host
+                    if not m.group(2):
+                        transport = None
+                    else:
+                        transport = m.group(2)
+                    if not m.group(3):
+                        port = None
+                    else:
+                        port = int(m.group(3))
+                    
+                    self._connect(host, port, transport)
+                elif input in ["/disconnect"]:
+                    self._disconnect()
+                elif input.startswith("/join"):
+                    channel = input[len("/join "):].strip()
+                    self._join_channel(channel)
+                elif input in ["/leave"]:
+                    self._leave_channel()
+                elif input.startswith("/nickname"):
+                    nickname = input[len("/nickname "):]
+                    self._change_nickname(nickname)
+                elif input in ["/h", "/help"]:
+                    self._print_appmessage("/h /help")
+                    self._print_appmessage("    print this help message")
+                    self._print_appmessage("/connect HOST PORT [tcp|websockets]")
+                    self._print_appmessage("    connect to an mqtt broker, the port and transport is optional")
+                    self._print_appmessage("/disconnect")
+                    self._print_appmessage("    disconnect from the mqtt broker")
+                    self._print_appmessage("/join CHANNEL")
+                    self._print_appmessage("    join a channel")
+                    self._print_appmessage("/leave")
+                    self._print_appmessage("    leave channel")
+                    self._print_appmessage("/nickname NAME")
+                    self._print_appmessage("    change your nickname")
+                    self._print_appmessage("/q /quit")
+                    self._print_appmessage("    leave the chat and close the application")
                 else:
-                    transport = m.group(2)
-                if not m.group(3):
-                    port = None
-                else:
-                    port = int(m.group(3))
-                
-                self._connect(host, port, transport)
-            elif input in ["/disconnect"]:
-                self._print_message(self._nickname, input)
-                self._disconnect()
-            elif input.startswith("/join"):
-                self._print_message(self._nickname, input)
-                channel = input[len("/join "):].strip()
-                self._join_channel(channel)
-            elif input in ["/leave"]:
-                self._print_message(self._nickname, input)
-                self._leave_channel()
-            elif input.startswith("/nickname"):
-                self._print_message(self._nickname, input)
-                nickname = input[len("/nickname "):]
-                self._change_nickname(nickname)
-            elif input in ["/h", "/help"]:
-                self._print_message(self._nickname, input)
-                self._print_appmessage("/h /help")
-                self._print_appmessage("    print this help message")
-                self._print_appmessage("/connect HOST PORT [tcp|websockets]")
-                self._print_appmessage("    connect to an mqtt broker, the port and transport is optional")
-                self._print_appmessage("/disconnect")
-                self._print_appmessage("    disconnect from the mqtt broker")
-                self._print_appmessage("/join CHANNEL")
-                self._print_appmessage("    join a channel")
-                self._print_appmessage("/leave")
-                self._print_appmessage("    leave channel")
-                self._print_appmessage("/nickname NAME")
-                self._print_appmessage("    change your nickname")
-                self._print_appmessage("/q /quit")
-                self._print_appmessage("    leave the chat and close the application")
+                    self._print_appmessage("Sorry, I did not get this. Try /help")
             else:
                 # publish message
                 self._send_message(input)
@@ -298,9 +326,11 @@ class ChatClient:
 
     def _send_message_as(self, author, message):
         if self._mqtt_client is None:
+            self._print_message(author, message)
             self._print_appmessage("Cannot send message: not connected yet")
             return
         if self._channel is None:
+            self._print_message(author, message)
             self._print_appmessage("Cannot send message: join a channel first")
             return
         payload = json.dumps((author, message)).encode('utf8')
@@ -326,20 +356,24 @@ class ChatClient:
         self._ui.chatbuffer_addmessage(author, message)
     
     def _print_appmessage(self, message):
-        self._ui.chatbuffer_addmessage("$", message)
+        self._ui.chatbuffer_addmessage("", message)
 
 def main(stdscr):
     parser = argparse.ArgumentParser(description="Publish temperature sensors of this machine.")
     parser.add_argument("--host", help="the host of the mqtt broker")
+    parser.add_argument("--nickname", help="the nickname to use")
     args = parser.parse_args()
 
     if args.host:
         host = args.host
     else:
         host = None
-    stdscr.clear()
-    ui = ChatUI(stdscr)
-    chatclient = ChatClient(ui, host)
-    chatclient.run()
+    if args.nickname:
+        nickname = args.nickname
+    else:
+        nickname = "nobody"
+    with ChatUI(stdscr) as ui:
+        chatclient = ChatClient(ui, host, nickname)
+        chatclient.run()
 
 curses.wrapper(main)

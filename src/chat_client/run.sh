@@ -22,7 +22,7 @@ then
 fi
 
 # run client
-$MAIN --host $BROKER
+$MAIN --host $BROKER --nickname "`id -un`@`hostname`"
 
 # deactivate venv
 deactivate

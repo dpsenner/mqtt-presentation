@@ -72,7 +72,10 @@ class ChatUI:
             i = self._stdscr.getch()
             if i == curses.KEY_MOUSE:
                 # pop mouse event
-                m = curses.getmouse()
+                try:
+                    m = curses.getmouse()
+                except curses.error:
+                    pass
             elif i == ord('\n'):
                 result = self._inputbuffer[len(prefix):]
                 self._inputbuffer = ""

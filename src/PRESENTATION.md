@@ -94,49 +94,15 @@ Quality of service flag influences the message delivery:
 
 ## MQTT QoS 0
 
+![QoS-0](QoS-0.png)
+
+## MQTT QoS 0: features
+
 * Message arrives at most once
 * No guarantee of delivery
 * No retransmission by the client
 * No message queuing
 * Fastest
-
-## MQTT QoS 0: flow
-
-```text
-Client --pub qos0--> Broker
-```
-
-## MQTT QoS 1
-
-* Message arrives at least once
-* Guaranteed delivery
-* No retransmission by the client
-* Messages are queued
-* Slower
-
-## MQTT QoS 1: flow
-
-```text
-Client ---pub qos1--> Broker
-Client <--pub ack---- Broker
-```
-
-## MQTT QoS 2
-
-* Message arrives exactly once
-* Guaranteed delivery
-* Retransmission of messages
-* Messages are queued
-* Slowest
-
-## MQTT QoS 2: flow
-
-```text
-Client ---pub qos2--> Broker
-Client <--pub rec---- Broker
-Client ---pub rel---> Broker
-Client <--pub comp--- Broker
-```
 
 ## MQTT QoS 0: use when ..
 
@@ -144,11 +110,35 @@ Client <--pub comp--- Broker
 * Messages can be lost occasionally
 * Message queuing is not needed
 
+## MQTT QoS 1
+
+![QoS-1](QoS-1.png)
+
+## MQTT QoS 1: features
+
+* Message arrives at least once
+* Guaranteed delivery
+* A client may retransmit a message if it does not receive a puback after a reasonable amount of time
+* Messages are queued by the sender
+* Slower
+
 ## MQTT QoS 1: use when ..
 
 * You need to get every message
 * Application layer handles duplicates
 * Functional requirements do not tolerate QoS 2 overhead
+
+## MQTT QoS 2
+
+![QoS-2](QoS-2.png)
+
+## MQTT QoS 2: features
+
+* Message arrives exactly once
+* Guaranteed delivery
+* Retransmission of messages
+* Messages are queued
+* Slowest
 
 ## MQTT QoS 2: use when ..
 

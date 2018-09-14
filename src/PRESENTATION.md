@@ -59,7 +59,28 @@ MQTT is a light weight protocol that:
 * Requires only a very small memory footprint
 * Requires very low bandwidth
 
-## MQTT topics and payloads
+## MQTT: topics
+
+* Topics can be any string
+* Should be structured into a namespace with slashes
+* Subscriptions allow pattern matching with:
+    * `+` matching up to the next `/`
+    * `#` matching any string that follows
+* `foo/+/baz` matches `foo/bar/baz` and `foo/boo/baz`
+* `foo/#` matches also `foo/bar/baz/doh`
+* `#` matches any topic
+* But `foo/#/baz` is not allowed
+
+## MQTT: payload
+
+* Payload can be any array of bytes up to ~256Mb
+* Picture data
+* Video frame
+* JSON
+* protobuf
+* ...
+
+## MQTT: encoding information
 
 * Information can be encoded into topics
 * Information can be encoded into the payload
@@ -185,7 +206,7 @@ A persistent session includes all information that the broker knows about a clie
 ## MQTT limitations
 
 * A message can transport at most ~256Mb in the payload
-* Broker is a single point of failure
+* Broker is (not necessarily) a single point of failure
 * A publisher may assume that a subscriber is listening, when in fact it is not
 * Assuring delivery to subscriber involves additional roundtrips
 * Publishes by malicious or faulty nodes: signatures

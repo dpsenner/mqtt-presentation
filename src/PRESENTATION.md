@@ -77,8 +77,8 @@ Payload can be any array of bytes up to ~256Mb:
 
 * Picture data
 * Video frame
-* JSON
-* protobuf
+* `json`
+* `protobuf`
 * Headers and payloads of another protocol
 * ...
 
@@ -87,7 +87,12 @@ Payload can be any array of bytes up to ~256Mb:
 * Information can be encoded into topics
 * Information can be encoded into the payload
 * Information can be encoded into both
-* What's better depends on the functional requirements
+* What's better depends on the functional requirements, but:
+    * Topics should allow subscribers to easily match for interesting payload
+    * Represent the payload semantically
+* Structuring the topic namespace can be a challenging task
+* Reducing the number of topics improves scalability
+* Too few topics with large payloads may quickly saturate the network
 
 ## MQTT QoS
 
@@ -276,11 +281,11 @@ This presentation along with examples can be found here:
     * Temperature alarms
     * Temperature histogram
 
-## Related Work: Sparkplug
+## Related Work: Sparkplug or LWM2M
 
-* Defines a very small set of topics
+* Both define a very small set of topics
 * This allows discovering nodes and their capabilities
-* We are not going into the details of the sparkplug specification
+* We are not going into the details of these specifications
 
 ## Related work: DDS
 

@@ -70,6 +70,7 @@ MQTT is a light weight protocol that:
 * `foo/#` matches also `foo/bar/baz/doh`
 * `#` matches any topic
 * But `foo/#/baz` is not allowed
+* Designing a topic namespace is a challenging task
 
 ## MQTT: payload
 
@@ -80,19 +81,8 @@ Payload can be any array of bytes up to ~256Mb:
 * `json`
 * `protobuf`
 * Headers and payloads of another protocol
+* Metadata about other topics
 * ...
-
-## MQTT: encoding information
-
-* Information can be encoded into topics
-* Information can be encoded into the payload
-* Information can be encoded into both
-* What's better depends on the functional requirements, but:
-    * Topics should allow subscribers to easily match for interesting payload
-    * Represent the payload semantically
-* Structuring the topic namespace can be a challenging task
-* Reducing the number of topics improves scalability
-* Too few topics with large payloads may quickly saturate the network
 
 ## MQTT QoS
 

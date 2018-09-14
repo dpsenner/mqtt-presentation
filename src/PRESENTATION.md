@@ -55,10 +55,9 @@ This approach shines as a more generic concept to the classic request-response p
 
 MQTT is a light weight protocol that:
 
-* Provides publish-subscribe pattern
 * Is designed to consume only very little power
 * Requires only a very small memory footprint
-* Requires very low bandwith
+* Requires very low bandwidth
 
 ## MQTT topics and payloads
 

@@ -10,6 +10,7 @@ date: Sep 21, 2018
 
 * Software engineer since 2005
 * Active member of the Apache Software Foundation
+* Open Source Software that makes the world a better place for humankind
 * Working in the industry, providing customers with automation and control systems
 
 ## Motivation

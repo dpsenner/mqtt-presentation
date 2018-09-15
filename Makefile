@@ -1,4 +1,4 @@
-MQTT_BROKER_HOST = 10.10.10.60
+MQTT_BROKER_HOST = mqtt.hta
 OUT_FORMAT = beamer
 THEME = -V theme:default -V colortheme:crane -V fonttheme:structurebold
 PANDOC_OPTS = -t $(OUT_FORMAT) $(THEME) --slide-level 2

@@ -237,27 +237,6 @@ class ChatClient:
                 # publish message
                 self._send_message(input)
 
-    def _on_connect(self, client, userdata, flags, rc):
-        self._print_appmessage("Connected to {0}:{1}".format(self._mqtt_host, self._mqtt_port))
-        if self._channel:
-            # join again
-            self._join_channel(self._channel)
-
-    def _on_disconnect(self, client, userdata, rc):
-        self._print_appmessage("Disconnected from {0}:{1}".format(self._mqtt_host, self._mqtt_port))
-
-    def _on_message(self, client, userdata, msg):
-        try:
-            if self._channel is not None:
-                if msg.topic == self._get_channel_topic():
-                    payload = msg.payload.decode('utf8')
-                    author, message = json.loads(payload)
-                    self._print_message(author, message)
-            else:
-                print("Received an unhandled message on topic {0}".format(msg.topic))
-        except Exception as ex:
-            print("An unhandled exception occurred while processing a message on topic {0}: {1}".format(msg.topic, ex))
-    
     def _connect(self, host=None, port=None, transport=None):
         if self._mqtt_client is not None:
             self._print_appmessage("Cannot connect: already connected")
@@ -360,6 +339,27 @@ class ChatClient:
     
     def _print_appmessage(self, message):
         self._ui.chatbuffer_addmessage("", message)
+
+    def _on_connect(self, client, userdata, flags, rc):
+        self._print_appmessage("Connected to {0}:{1}".format(self._mqtt_host, self._mqtt_port))
+        if self._channel:
+            # join again
+            self._join_channel(self._channel)
+
+    def _on_disconnect(self, client, userdata, rc):
+        self._print_appmessage("Disconnected from {0}:{1}".format(self._mqtt_host, self._mqtt_port))
+
+    def _on_message(self, client, userdata, msg):
+        try:
+            if self._channel is not None:
+                if msg.topic == self._get_channel_topic():
+                    payload = msg.payload.decode('utf8')
+                    author, message = json.loads(payload)
+                    self._print_message(author, message)
+            else:
+                print("Received an unhandled message on topic {0}".format(msg.topic))
+        except Exception as ex:
+            print("An unhandled exception occurred while processing a message on topic {0}: {1}".format(msg.topic, ex))
 
 def main(stdscr):
     parser = argparse.ArgumentParser(description="Publish temperature sensors of this machine.")

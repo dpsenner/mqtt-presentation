@@ -236,17 +236,23 @@ A persistent session includes all information that the broker knows about a clie
 
 [http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
 
-## Hands on: chat
-
-* Chat application
-* Topic: `chat/channel/+/message`
-* Payload: `["author", "message"]`
-
 ## Hands on: git repository
 
 This presentation along with examples can be found here:
 
 [https://github.com/dpsenner/mqtt-presentation.git](https://github.com/dpsenner/mqtt-presentation.git)
+
+## Hands on: broker
+
+* Hostname: `mqtt.hta`
+* WebSocket port: `8000`
+* TCP port: `1883`
+
+## Hands on: chat
+
+* Chat application
+* Topic: `chat/channel/+/message`
+* Payload: `["author", "message"]`
 
 ## Hands on: sensor data
 

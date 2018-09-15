@@ -72,6 +72,14 @@ MQTT is a light weight protocol that:
 * But `foo/#/baz` is not allowed
 * Designing a topic namespace is a challenging task
 
+## MQTT: topics best practices
+
+* No leading forward slash
+* Avoid whitespaces or non-ASCII characters
+* Keep topic short and concise
+* Use specific topics, not general ones
+* Don't forget extensibility
+
 ## MQTT: payload
 
 Payload can be any array of bytes up to ~256Mb:
@@ -261,7 +269,7 @@ This presentation along with examples can be found here:
     * Temperature alarms
     * Temperature histogram
 
-## Related Work: Sparkplug or LWM2M
+## Related Work: Sparkplug
 
 * Both define a very small set of topics
 * This allows discovering nodes and their capabilities

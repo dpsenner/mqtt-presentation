@@ -60,7 +60,7 @@ namespace PublishTemperatureAlarms
             }
 
             // subscribe to topics: sensor data
-            foreach (var subscribeResult in await MqttClient.SubscribeAsync($"+/property/temperature/#"))
+            foreach (var subscribeResult in await MqttClient.SubscribeAsync($"+/property/+/temperature"))
             {
                 Console.WriteLine($"Subscribed to: {subscribeResult.TopicFilter.Topic}");
             }
@@ -159,19 +159,22 @@ namespace PublishTemperatureAlarms
                 TemperatureThreshold = temperature;
                 await PublishCpuThreshold();
             }
-            else if (topic.Contains("/property/temperature"))
-            {
-                var match = Regex.Match(topic, "^([^/]+)/property/temperature/(.+)");
-                string remoteApplicationId = match.Groups[1].Value;
-                string component = match.Groups[2].Value;
-                string payloadAsString = applicationMessage.ConvertPayloadToString();
-                string temperatureAsString = Regex.Replace(payloadAsString, "[^0-9\\.]", "");
-                double temperature = temperatureAsString.ToDouble();
-                await TemperatureReceived(remoteApplicationId, component, temperature);
-            }
             else
             {
-                Console.WriteLine($"{topic} unhandled");
+                var match = Regex.Match(topic, "^([^/]+)/property/([^/]+)/temperature");
+                if (match.Success)
+                {
+                    string remoteApplicationId = match.Groups[1].Value;
+                    string component = match.Groups[2].Value;
+                    string payloadAsString = applicationMessage.ConvertPayloadToString();
+                    string temperatureAsString = Regex.Replace(payloadAsString, "[^0-9\\.]", "");
+                    double temperature = temperatureAsString.ToDouble();
+                    await TemperatureReceived(remoteApplicationId, component, temperature);
+                }
+                else
+                {
+                    Console.WriteLine($"{topic} unhandled");
+                }
             }
         }
 

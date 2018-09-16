@@ -274,12 +274,12 @@ This presentation along with examples can be found here:
 
 ## Hands on: sensor data
 
-* Topic: `{node}/property/temperature/{sensor}`
+* Topic: `{node}/property/{sensor}`
 * Payload: `34.8`
 * Publishing sensor data
     * Stateless shell application
     * Stateful python application
-* Subscription: `+/property/temperature/#`
+* Subscription: `+/property/#`
 
 ## Hands on: controlling nodes
 

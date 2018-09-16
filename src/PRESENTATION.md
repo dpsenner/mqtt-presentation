@@ -60,6 +60,15 @@ MQTT is a light weight protocol that:
 * Requires only a very small memory footprint
 * Requires very low bandwidth
 
+## MQTT message
+
+A MQTT message consists of:
+
+* Topic
+* Payload
+* QoS
+* Retain flag
+
 ## MQTT: topics
 
 * Topics can be any string
@@ -164,10 +173,16 @@ Quality of service flag influences the message delivery:
 
 ## MQTT last will
 
-* A client can instruct the broker to publish a message when it disconnects
-* Both topic and payload are sent by the client when connecting to the broker
-* Last will can be a retained message
-* When the broker detects that the client is disconnected it publishes the last will on behalf of the client
+* Optional
+* Must be requested when clients connects to the broker
+* Last will is sent by the broker
+    * On behalf of the client
+    * When a client disconnects
+* Last will is a mqtt message
+    * Topic
+    * Payload
+    * Retain flag
+    * QoS
 
 ## Hands on: application state
 
@@ -195,8 +210,8 @@ A persistent session includes all information that the broker knows about a clie
 ## MQTT persistent session: mosquitto
 
 * Persistent session data is stored in memory
-* Persistent session data is Written to disk:
-    * When mosquitto closes
+* Persistent session data is flushed to disk:
+    * When mosquitto terminates gracefully
     * At configurable periodic intervals
 * Data is restored from disk on restart or signal
 * Persistent client expiration is disabled by default

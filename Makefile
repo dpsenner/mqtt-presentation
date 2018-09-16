@@ -7,6 +7,13 @@ presentation:
 	cd src && pandoc $(PANDOC_OPTS) -o PRESENTATION.pdf PRESENTATION.md
 	evince src/PRESENTATION.pdf
 
+application-state:
+	-src/application_state/run.sh $(MQTT_BROKER_HOST)
+
+application-state-requirements:
+	sudo apt install python3-pip
+	sudo pip3 install virtualenv
+
 chat-client:
 	-src/chat_client/run.sh $(MQTT_BROKER_HOST)
 
@@ -50,3 +57,6 @@ temperature-alarms-shutdown:
 
 subscribe-all:
 	-mosquitto_sub -h $(MQTT_BROKER_HOST) -v -t '#'
+
+publish-null-foreach-retained-message:
+	-src/tooling/run.sh --host=$(MQTT_BROKER_HOST) publish-null-foreach-retained

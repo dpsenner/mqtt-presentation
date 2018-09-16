@@ -160,21 +160,22 @@ Quality of service flag influences the message delivery:
 * Applications may not be subscribed or running when a message is published
 * Retaining a message is an effective way to deliver the message anyway
 * Broker stores the retained message
-* When an application subscribes, it receives the retained message
+* When an application subscribes, it receives the retained message in store
 
-## MQTT rebirth topic
+## MQTT last will
 
-* An alternative to retained messages if clients are alive
-* Applications subscribe to a topic like `rebirth`
-* When a message arrives the application publishes its state
-* Does not require a retained message
+* A client can instruct the broker to publish a message when it disconnects
+* Both topic and payload are sent by the client when connecting to the broker
+* Last will can be a retained message
+* When the broker detects that the client is disconnected it publishes the last will on behalf of the client
 
-## What happens if ..
+## Hands on: application state
 
-* A client is restarted?
-* The connection to the broker is interrupted?
-* Do all messages have to be retained?
-* What happens with subscriptions of the client?
+* Combining these two features is ideal to share the application state
+* Topic: `{node}/state`
+* Payload
+    * `ALIVE`
+    * `DEAD`
 
 ## MQTT persistent session
 

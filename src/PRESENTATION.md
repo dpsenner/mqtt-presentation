@@ -99,8 +99,8 @@ Payload can be any array of bytes up to ~256Mb:
 Quality of service flag influences the message delivery:
 
 * Messages from the publisher to the broker
-* Messages from the subscriber to the broker
-* But not messages from the publisher to the subcriber
+* Messages from the broker to the subscriber
+* Publishers and subcribers are allowed to use different QoS on the same topic
 
 ## MQTT QoS 0
 

@@ -85,12 +85,13 @@ MQTT is a light weight protocol that:
 
 Payload can be any array of bytes up to ~256Mb:
 
-* Picture data
-* Video frame
 * `json`
 * `protobuf`
+* Text encoded in utf8
 * Headers and payloads of another protocol
 * Metadata about other topics
+* Picture data
+* Video frame
 * ...
 
 ## MQTT QoS

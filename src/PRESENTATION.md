@@ -27,9 +27,8 @@ date: Sep 21, 2018
 ## Request-Response: Disadvantages
 
 * Tight coupling between client and service
-* Extending existing endpoints with more functionality is hard
+* Extending the application is challenging
 * Distributing data to several hundred endpoints is challenging
-* Scalability is challenging
 
 ## Publish-Subscribe
 
@@ -69,11 +68,11 @@ A MQTT message consists of:
 ## MQTT: topics
 
 * Topics can be any string
-* Should be structured into a namespace with slashes
+* Can be structured into a namespace with slashes
 * Subscriptions allow pattern matching with:
     * `+` matching up to the next `/`
     * `#` matching any string that follows
-* `foo/+/baz` matches `foo/bar/baz` and `foo/boo/baz`
+* `foo/+/baz` to match `foo/bar/baz` and `foo/boo/baz`
 * `foo/#` matches also `foo/bar/baz/doh`
 * `#` matches any topic
 * But `foo/#/baz` is not allowed
@@ -100,10 +99,40 @@ Payload can be any array of bytes up to ~256Mb:
 * Video frame
 * ...
 
+## Hands on: hivemq demo client
+
+[http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
+
+## Hands on: git repository
+
+This presentation along with examples can be found here:
+
+[https://github.com/dpsenner/mqtt-presentation.git](https://github.com/dpsenner/mqtt-presentation.git)
+
+## Hands on: broker
+
+* Hostname: `mqtt.hta`
+* WebSocket port: `8000`
+* TCP port: `1883`
+
+## Hands on: chat
+
+* Chat application
+* Topic: `chat/channel/+/message`
+* Payload: `["author", "message"]`
+
+## MQTT message
+
+A MQTT message further consists of:
+
+* Quality of Service (QoS) level
+* Retain flag
+
 ## MQTT QoS
 
-Quality of service flag influences the message delivery:
+Influences the behavior of a client that sends a message and the client that receives a message:
 
+* A client here is the publisher, the broker or the subscriber
 * Messages from the publisher to the broker
 * Messages from the broker to the subscriber
 * Publishers and subcribers are allowed to use different QoS on the same topic
@@ -179,22 +208,6 @@ Quality of service flag influences the message delivery:
     * Retain flag
     * QoS
 
-## Hands on: hivemq demo client
-
-[http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
-
-## Hands on: git repository
-
-This presentation along with examples can be found here:
-
-[https://github.com/dpsenner/mqtt-presentation.git](https://github.com/dpsenner/mqtt-presentation.git)
-
-## Hands on: broker
-
-* Hostname: `mqtt.hta`
-* WebSocket port: `8000`
-* TCP port: `1883`
-
 ## Hands on: application state
 
 * Combining these two features is ideal to share the application state
@@ -227,29 +240,6 @@ A persistent session includes all information that the broker knows about a clie
 * A client must get all messages, even if it is offline
 * A client has very limited resources, like android app where the operating system restricts cpu usage to save battery
 
-# Questions?
-
-## Hands on: chat
-
-* Chat application
-* Topic: `chat/channel/+/message`
-* Payload: `["author", "message"]`
-
-## Hands on: sensor data
-
-* Topic: `{node}/property/{sensor}`
-* Payload: `34.8`
-* Publishing sensor data
-    * Stateless shell application
-    * Stateful python application
-* Subscription: `+/property/#`
-
-## Hands on: controlling nodes
-
-* Read topic: `{node}/property/scan-rate`
-* Write topic: `{node}/property/scan-rate/set`
-* Payload: seconds, for example `3.0`
-
 ## Hands on: transforming data to other topics
 
 * Subscribing to sensor data
@@ -271,8 +261,6 @@ A persistent session includes all information that the broker knows about a clie
     * Ownership of topics
     * Persistent storage of messages
 
-## Q&A
-
-Questions?
+## Questions?
 
 ## Thanks

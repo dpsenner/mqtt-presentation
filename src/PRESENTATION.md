@@ -4,13 +4,10 @@ author: Dominik Psenner
 date: Sep 21, 2018
 ---
 
-# Welcome
-
 ## Who am I
 
 * Software engineer since 2005
 * Active member of the Apache Software Foundation
-* Open Source Software that makes the world a better place for humankind
 * Working in the industry, providing customers with automation and control systems
 
 ## Motivation
@@ -117,17 +114,16 @@ Quality of service flag influences the message delivery:
 
 ## MQTT QoS 0: features
 
-* Message arrives at most once
+* Fire and forget
 * No guarantee of delivery
 * No retransmission by the client
-* No message queuing
+* Message arrives at most once
 * Fastest
 
 ## MQTT QoS 0: use when ..
 
-* Connection is very stable; like wired lan
-* Messages can be lost occasionally
-* Message queuing is not needed
+* Connection is very stable; like on the same host
+* Application can handle if messages are lost
 
 ## MQTT QoS 1
 
@@ -135,17 +131,16 @@ Quality of service flag influences the message delivery:
 
 ## MQTT QoS 1: features
 
-* Message arrives at least once
 * Guaranteed delivery
-* A client may retransmit a message if it does not receive a puback after a reasonable amount of time
 * Messages are queued by the sender
-* Slower
+* A client may retransmit a message if it does not receive a puback after a reasonable amount of time
+* Message arrives at least once
+* Slower than QoS 1
 
 ## MQTT QoS 1: use when ..
 
-* You need to get every message
-* Application layer handles duplicates
-* Functional requirements do not tolerate QoS 2 overhead
+* Application cannot tolerate the loss of messages
+* Application layer handles duplicated messages
 
 ## MQTT QoS 2
 
@@ -153,10 +148,10 @@ Quality of service flag influences the message delivery:
 
 ## MQTT QoS 2: features
 
-* Message arrives exactly once
 * Guaranteed delivery
-* Retransmission of messages
 * Messages are queued
+* Message arrives exactly once
+* Retransmission of messages
 * Slowest
 
 ## MQTT QoS 2: use when ..
@@ -166,10 +161,10 @@ Quality of service flag influences the message delivery:
 
 ## MQTT retained messages
 
-* Applications may not be subscribed or running when a message is published
-* Retaining a message is an effective way to deliver the message anyway
-* Broker stores the retained message
-* When an application subscribes, it receives the retained message in store
+* Broker stores a retained message when it is published
+* Broker serves the retained message to subscribers on behalf of the publisher
+* When an application subscribes, it receives the retained message stored by the broker
+* Applications can be subscribed or running when a message is published
 
 ## MQTT last will
 
@@ -178,11 +173,27 @@ Quality of service flag influences the message delivery:
 * Last will is sent by the broker
     * On behalf of the client
     * When a client disconnects
-* Last will is a mqtt message
+* Last will is a complete MQTT message
     * Topic
     * Payload
     * Retain flag
     * QoS
+
+## Hands on: hivemq demo client
+
+[http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
+
+## Hands on: git repository
+
+This presentation along with examples can be found here:
+
+[https://github.com/dpsenner/mqtt-presentation.git](https://github.com/dpsenner/mqtt-presentation.git)
+
+## Hands on: broker
+
+* Hostname: `mqtt.hta`
+* WebSocket port: `8000`
+* TCP port: `1883`
 
 ## Hands on: application state
 
@@ -202,11 +213,6 @@ A persistent session includes all information that the broker knows about a clie
 * All new messages with QoS > 0 that the client would miss
 * All QoS 2 messages from the client that are not yet ack'ed completely
 
-## MQTT persistent session: when to use?
-
-* A client must get all messages, even if it is offline
-* A client has very limited resources, likw android app where the operating system restricts cpu usage to save battery
-
 ## MQTT persistent session: mosquitto
 
 * Persistent session data is stored in memory
@@ -216,55 +222,12 @@ A persistent session includes all information that the broker knows about a clie
 * Data is restored from disk on restart or signal
 * Persistent client expiration is disabled by default
 
-## MQTT limitations
+## MQTT persistent session: when to use?
 
-* A message can transport at most ~256Mb in the payload
-* Broker is (not necessarily) a single point of failure
-* A publisher may assume that a subscriber is listening, when in fact it is not
-* Assuring delivery to subscriber involves additional roundtrips
-* Publishes by malicious or faulty nodes: signatures
-* Hiding information from subscribers: encryption
+* A client must get all messages, even if it is offline
+* A client has very limited resources, like android app where the operating system restricts cpu usage to save battery
 
-## MQTT topic: best practice
-
-* A topic should transport one piece of information that belongs together
-* Design topic with the same kind of information to be on the same nesting level
-
-## MQTT payload: best practice
-
-* May be any binary format, even a protocol with headers and payloads
-* `JSON` is supported by many applications and is human readable
-* `protobuf` shines on embedded devices with very limited resources
-
-## Implementing Request-Response?
-
-* Better design topics and payloads for
-    * The state of the system
-    * The information that needs to be exchanged
-* Use a higher QoS than 0
-* One or more topics to know whether the node and its components is alive
-* One or more topics for the request data
-* One or more topics for the response data
-    * Successful response
-    * Failure responses
-
-## Questions?
-
-## Hands on: hivemq demo client
-
-[http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
-
-## Hands on: git repository
-
-This presentation along with examples can be found here:
-
-[https://github.com/dpsenner/mqtt-presentation.git](https://github.com/dpsenner/mqtt-presentation.git)
-
-## Hands on: broker
-
-* Hostname: `mqtt.hta`
-* WebSocket port: `8000`
-* TCP port: `1883`
+# Questions?
 
 ## Hands on: chat
 

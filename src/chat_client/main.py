@@ -164,7 +164,7 @@ class ChatUI:
         self._inputbuffer_window.refresh()
 
 class ChatClient:
-    def __init__(self, ui, mqtt_host=None, nickname=None):
+    def __init__(self, ui, mqtt_host=None, nickname=None, client_id=None, clean_session=None):
         self._ui = ui
         self._mqtt_client = None
         self._mqtt_host = mqtt_host
@@ -173,7 +173,14 @@ class ChatClient:
         if nickname is None:
             nickname = "nobody"
         self._nickname = nickname
-        self._channel = None
+        if client_id is None:
+            client_id = nickname
+        self._client_id = client_id
+        if clean_session is None:
+            clean_session = False
+        self._clean_session = clean_session
+        self._channel = "hta"
+        self._qos = 2
     
     def run(self):
         self._print_appmessage("Hello!")
@@ -253,7 +260,7 @@ class ChatClient:
             elif transport == "websockets":
                 port = 8000
         self._print_appmessage("Connecting to {0}:{1} using {2} ..".format(host, port, transport))
-        mqtt_client = mqtt.Client(transport=transport)
+        mqtt_client = mqtt.Client(client_id=self._client_id, clean_session=self._clean_session, transport=transport)
         mqtt_client.on_connect = self._on_connect
         mqtt_client.on_message = self._on_message
         mqtt_client.on_disconnect = self._on_disconnect
@@ -289,7 +296,7 @@ class ChatClient:
             # leave first
             self._leave_channel()
         self._channel = channel
-        self._mqtt_client.subscribe(self._get_channel_topic())
+        self._mqtt_client.subscribe(self._get_channel_topic(), qos=self._qos)
         self._send_channel_message("{0} joined the channel".format(self._nickname))
     
     def _leave_channel(self):
@@ -316,7 +323,7 @@ class ChatClient:
             self._print_appmessage("Cannot send message: join a channel first")
             return
         payload = json.dumps((author, message)).encode('utf8')
-        self._mqtt_client.publish(self._get_channel_topic(), payload)
+        self._mqtt_client.publish(self._get_channel_topic(), payload, qos=self._qos)
     
     def _change_nickname(self, nickname):
         if not nickname:
@@ -351,13 +358,10 @@ class ChatClient:
 
     def _on_message(self, client, userdata, msg):
         try:
-            if self._channel is not None:
-                if msg.topic == self._get_channel_topic():
-                    payload = msg.payload.decode('utf8')
-                    author, message = json.loads(payload)
-                    self._print_message(author, message)
-            else:
-                print("Received an unhandled message on topic {0}".format(msg.topic))
+            if msg.topic == self._get_channel_topic():
+                payload = msg.payload.decode('utf8')
+                author, message = json.loads(payload)
+                self._print_message(author, message)
         except Exception as ex:
             print("An unhandled exception occurred while processing a message on topic {0}: {1}".format(msg.topic, ex))
 
@@ -365,6 +369,8 @@ def main(stdscr):
     parser = argparse.ArgumentParser(description="Publish temperature sensors of this machine.")
     parser.add_argument("--host", help="the host of the mqtt broker")
     parser.add_argument("--nickname", help="the nickname to use")
+    parser.add_argument("--client-id", help="the client id to use when connecting to the broker")
+    parser.add_argument("--clean-session", choices=["yes", "no"])
     args = parser.parse_args()
 
     if args.host:
@@ -375,8 +381,14 @@ def main(stdscr):
         nickname = args.nickname
     else:
         nickname = "nobody"
+    if args.clean_session == "yes":
+        clean_session = True
+    elif args.clean_session == "no":
+        clean_session = False
+    
+    print("heyho!")
     with ChatUI(stdscr) as ui:
-        chatclient = ChatClient(ui, host, nickname)
+        chatclient = ChatClient(ui, host, nickname=nickname, client_id=nickname, clean_session=clean_session)
         chatclient.run()
 
 curses.wrapper(main)

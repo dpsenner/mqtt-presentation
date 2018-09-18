@@ -12,10 +12,11 @@ date: Sep 21, 2018
 
 ## Motivation
 
-* Automation in the industry gains new momentum
-* IoT
-* Industry 4.0
-* Good slogans, communication and collaboration is the key
+Automation in the industry and IoT typically involves communication between:
+
+* ERP (Enterprise Resource Planning)
+* MES (Manufacturing Execution System)
+* PCS (Production Control System)
 
 ## Request-Response
 
@@ -28,7 +29,7 @@ date: Sep 21, 2018
 
 * Tight coupling between client and service
 * Extending the application is challenging
-* Distributing data to several hundred endpoints is challenging
+* Distributing the same data to several hundred clients is challenging
 
 ## Publish-Subscribe
 
@@ -62,21 +63,24 @@ A MQTT message consists of:
 
 * Topic
 * Payload
-* QoS
+* Quality of Service flag
 * Retain flag
 
 ## MQTT: topics
 
-* Topics can be any string
-* Can be structured into a namespace with slashes
-* Subscriptions allow pattern matching with:
-    * `+` matching up to the next `/`
-    * `#` matching any string that follows
-* `foo/+/baz` to match `foo/bar/baz` and `foo/boo/baz`
-* `foo/#` matches also `foo/bar/baz/doh`
-* `#` matches any topic
-* But `foo/#/baz` is not allowed
-* Designing a topic namespace is a challenging task
+Topics can be any string and it is good practice to structure them into a namespace using slashes:
+
+* `my-home/kitchen/sensor/1/temperature`
+* `my-home/kitchen/sensor/1/humidity`
+* `my-home/livingroom/sensor/1/temperature`
+
+## MQTT: topic subscriptions
+
+Subscriptions allow pattern matching using `+` and `#`:
+
+* `my-home/kitchen/sensor/+/temperature`
+* `my-home/kitchen/#`
+* `#`
 
 ## MQTT: topics best practices
 
@@ -164,7 +168,7 @@ Influences the behavior of a client that sends a message and the client that rec
 * Messages are queued by the sender
 * A client may retransmit a message if it does not receive a puback after a reasonable amount of time
 * Message arrives at least once
-* Slower than QoS 1
+* Slower than QoS 0
 
 ## MQTT QoS 1: use when ..
 

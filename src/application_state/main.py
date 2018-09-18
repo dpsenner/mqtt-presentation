@@ -18,7 +18,7 @@ class SomeNode:
         # Set last will of the node, the broker stores this message and publishes
         # it on behalf of this node when it detects that this node disconnects from
         # the broker.
-        self._client.will_set(self._get_topic_application_state(), "DEAD", retain=True)
+        self._client.will_set(self._get_topic_application_state(), "DEAD", qos=1, retain=True)
         self._client.connect(self._host, self._port, 60)
         self._client.loop_start()
         while True:
@@ -32,7 +32,7 @@ class SomeNode:
 
     def _on_connect(self, client, userdata, flags, rc):
         print("Connected to {0}:{1}".format(self._host, self._port))
-        self._client.publish(self._get_topic_application_state(), "ALIVE", retain=True)
+        self._client.publish(self._get_topic_application_state(), "ALIVE", qos=1, retain=True)
 
     def _on_disconnect(self, client, userdata, rc):
         print("Disconnected from {0}:{1}".format(self._host, self._port))

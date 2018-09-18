@@ -15,7 +15,10 @@ application-state-requirements:
 	sudo pip3 install virtualenv
 
 chat-client:
-	-src/chat_client/run.sh $(MQTT_BROKER_HOST)
+	src/chat_client/run.sh --host $(MQTT_BROKER_HOST) --nickname "`id -un`@`hostname`" --clean-session no
+
+chat-client-clean:
+	src/chat_client/run.sh --host $(MQTT_BROKER_HOST) --nickname "`id -un`@`hostname`" --clean-session yes
 
 chat-client-requirements:
 	sudo apt install python3-pip

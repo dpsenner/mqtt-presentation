@@ -15,14 +15,8 @@ else
     source $ACTIVATE
 fi
 
-BROKER="$1"
-if [ -z "$BROKER" ];
-then
-	BROKER="localhost"
-fi
-
 # run client
-$MAIN --host $BROKER --nickname "`id -un`@`hostname`"
+$MAIN $@
 
 # deactivate venv
 deactivate

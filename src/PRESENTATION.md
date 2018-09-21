@@ -192,6 +192,30 @@ Influences the behavior of a client that sends a message and the client that rec
 * It is critical for the application that messages arrive exactly once
 * The four-part handshake overhead is not an issue
 
+## MQTT persistent session
+
+A persistent session includes all information that the broker knows about a client:
+
+* Existence of a client session
+* Subscriptions of the client
+* All messages with QoS > 0 that the client did not ack yet
+* All new messages with QoS > 0 that the client would miss
+* All QoS 2 messages from the client that are not yet ack'ed completely
+
+## MQTT persistent session: mosquitto
+
+* Persistent session data is stored in memory for performance reasons
+* Persistent session data is flushed to disk:
+    * At configurable periodic intervals
+    * When mosquitto terminates gracefully
+* Data is restored from disk on restart or signal
+* Persistent client expiration: disabled by default
+
+## MQTT persistent session: when to use?
+
+* A client must get all messages, even if it is offline
+* A client has very limited resources, like android app where the operating system restricts cpu usage to save battery
+
 ## MQTT retained messages
 
 * Broker stores a retained message when it is published
@@ -220,50 +244,17 @@ Influences the behavior of a client that sends a message and the client that rec
     * `ALIVE`
     * `DEAD`
 
-## MQTT persistent session
+## Related Work
 
-A persistent session includes all information that the broker knows about a client:
-
-* Existence of a client session
-* Subscriptions of the client
-* All messages with QoS > 0 that the client did not ack yet
-* All new messages with QoS > 0 that the client would miss
-* All QoS 2 messages from the client that are not yet ack'ed completely
-
-## MQTT persistent session: mosquitto
-
-* Persistent session data is stored in memory
-* Persistent session data is flushed to disk:
-    * When mosquitto terminates gracefully
-    * At configurable periodic intervals
-* Data is restored from disk on restart or signal
-* Persistent client expiration is disabled by default
-
-## MQTT persistent session: when to use?
-
-* A client must get all messages, even if it is offline
-* A client has very limited resources, like android app where the operating system restricts cpu usage to save battery
-
-## Hands on: transforming data to other topics
-
-* Subscribing to sensor data
-    * Temperature alarms
-    * Temperature histogram
-
-## Related Work: Sparkplug
-
-* Both define a very small set of topics
-* This allows discovering nodes and their capabilities
-* We are not going into the details of these specifications
-
-## Related work: DDS
-
-* Data Distribution Service is an open standard
-* There are commercial and open source implementations
-* The big advantages over MQTT are:
-    * Discovery of publishers and subscribers
-    * Ownership of topics
-    * Persistent storage of messages
+* Sparkplug
+    * Designed to integrate devices (sensors and actors)
+    * Implements a homogenous topic and payload structure
+* DDS (Data Distribution Service)
+    * Open standard
+    * Discovery of clients
+    * Payload introspection
+    * Persistent storage built-in
+    * US Navy AOA (Aegis Open Architecture)
 
 ## Questions?
 

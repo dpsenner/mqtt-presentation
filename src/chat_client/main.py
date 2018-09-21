@@ -292,7 +292,7 @@ class ChatClient:
         if channel.strip() != channel:
             self._print_appmessage("Channel name must not contain leading or trailing whitespaces")
             return
-        if self._channel:
+        if self._channel and self._channel != channel:
             # leave first
             self._leave_channel()
         self._channel = channel
@@ -302,6 +302,7 @@ class ChatClient:
     def _leave_channel(self):
         if not self._channel:
             self._print_appmessage("Cannot leave channel: join a channel first")
+            return
         
         self._mqtt_client.unsubscribe(self._get_channel_topic())
         self._send_channel_message("{0} left the channel".format(self._nickname))
@@ -363,7 +364,8 @@ class ChatClient:
                 author, message = json.loads(payload)
                 self._print_message(author, message)
         except Exception as ex:
-            print("An unhandled exception occurred while processing a message on topic {0}: {1}".format(msg.topic, ex))
+            #print("An unhandled exception occurred while processing a message on topic {0}: {1}".format(msg.topic, ex))
+            pass
 
 def main(stdscr):
     parser = argparse.ArgumentParser(description="Publish temperature sensors of this machine.")

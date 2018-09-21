@@ -214,6 +214,11 @@ A persistent session includes all information that the broker knows about a clie
 * A client must get all messages, even if it is offline
 * A client has very limited resources, like android app where the operating system restricts cpu usage to save battery
 
+## Hands on: persistent session
+
+* Chat application uses persistent session
+* Shows messages missed while being shut down
+
 ## MQTT retained messages
 
 * Broker stores a retained message when it is published
@@ -241,6 +246,15 @@ A persistent session includes all information that the broker knows about a clie
 * Payload
     * `ALIVE`
     * `DEAD`
+
+## Security concerns
+
+* Broker provides:
+    * Transport encryption
+    * Authentication
+    * Access control lists
+* However, everyone with access can subscribe to all topics
+* Application layer can sign and encrypt the payload
 
 ## Git repository
 

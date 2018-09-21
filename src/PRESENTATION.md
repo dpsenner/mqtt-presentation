@@ -33,7 +33,8 @@ Automation in the industry and IoT typically involves communication between:
 
 ## Publish-Subscribe
 
-![MQTT Publisher Subscriber](mqtt_publisher_subscriber-1.png)
+![MQTT Publisher Subscriber](mqtt_publisher_subscriber-1.png){ height=80% width=80%}\
+
 
 ## Publish-Subscribe: Features
 
@@ -107,12 +108,6 @@ Payload can be any array of bytes up to ~256Mb:
 
 [http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
 
-## Hands on: git repository
-
-This presentation along with examples can be found here:
-
-[https://github.com/dpsenner/mqtt-presentation.git](https://github.com/dpsenner/mqtt-presentation.git)
-
 ## Hands on: broker
 
 * Hostname: `mqtt.hta`
@@ -143,7 +138,8 @@ Influences the behavior of a client that sends a message and the client that rec
 
 ## MQTT QoS 0
 
-![QoS-0](QoS-0.png)
+![QoS-0](QoS-0.png)\
+
 
 ## MQTT QoS 0: features
 
@@ -160,7 +156,8 @@ Influences the behavior of a client that sends a message and the client that rec
 
 ## MQTT QoS 1
 
-![QoS-1](QoS-1.png)
+![QoS-1](QoS-1.png)\
+
 
 ## MQTT QoS 1: features
 
@@ -177,7 +174,8 @@ Influences the behavior of a client that sends a message and the client that rec
 
 ## MQTT QoS 2
 
-![QoS-2](QoS-2.png)
+![QoS-2](QoS-2.png)\
+
 
 ## MQTT QoS 2: features
 
@@ -244,18 +242,27 @@ A persistent session includes all information that the broker knows about a clie
     * `ALIVE`
     * `DEAD`
 
+## Git repository
+
+This presentation along with examples can be found here:
+[https://github.com/dpsenner/mqtt-presentation](https://github.com/dpsenner/mqtt-presentation)
+
 ## Related Work
 
-* Sparkplug
+* Sparkplug (built on MQTT)
     * Designed to integrate devices (sensors and actors)
-    * Implements a homogenous topic and payload structure
+    * Implements a homologous topic and payload structure
 * DDS (Data Distribution Service)
     * Open standard
-    * Discovery of clients
+    * Discovery of nodes (no broker)
     * Payload introspection
     * Persistent storage built-in
-    * US Navy AOA (Aegis Open Architecture)
+    * Backbone middleware for:
+        * US Navy AOA (Aegis Open Architecture)
+        * NASA Robotics
+        * Volkswagen Driver Assistance
+        * ...
 
-## Questions?
+# Questions?
 
-## Thanks
+# Thanks

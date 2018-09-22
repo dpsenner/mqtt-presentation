@@ -12,11 +12,14 @@ date: Sep 21, 2018
 
 ## Motivation
 
-Automation in the industry and IoT typically involves communication between:
+Automation in the industry typically involves communication between:
 
-* ERP (Enterprise Resource Planning)
-* MES (Manufacturing Execution System)
-* PCS (Production Control System)
+* Sensors
+* Actors
+* Application servers
+    * ERP (Enterprise Resource Planning)
+    * MES (Manufacturing Execution System)
+    * PCS (Production Control System)
 
 ## Request-Response
 
@@ -108,7 +111,7 @@ Payload can be any array of bytes up to ~256Mb:
 
 Either one of:
 
-* [http://http://bit.do/mqtt-hta](http://http://bit.do/mqtt-hta)
+* [http://bit.do/mqtt-hta](http://bit.do/mqtt-hta)
 * [http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
 
 ## Hands on: broker

@@ -106,7 +106,10 @@ Payload can be any array of bytes up to ~256Mb:
 
 ## Hands on: hivemq demo client
 
-[http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
+Either one of:
+
+* [http://http://bit.do/mqtt-hta](http://http://bit.do/mqtt-hta)
+* [http://www.hivemq.com/demos/websocket-client/](http://www.hivemq.com/demos/websocket-client/)
 
 ## Hands on: broker
 
